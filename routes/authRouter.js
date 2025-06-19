@@ -1,10 +1,10 @@
 // routes/authRouter.js
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/authController'); // ✅ đúng file
+const authController = require('../controllers/authController');
 
-router.post('/register', userController.registerParent);
-router.post('/login', userController.loginParent);
-router.post('/verify', userController.verifyOTP);
+router.post('/register', authController.registerParent);
+router.post('/login', authController.loginParent);
+router.post('/verify', authController.verifyOTP);
 
 module.exports = router;

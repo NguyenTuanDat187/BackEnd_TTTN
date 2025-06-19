@@ -24,7 +24,7 @@ require('./models/SupportTicket');
 // ✅ Import đúng định dạng các router
 const otpRoute = require('./routes/otpRoute');
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+const usersRouter = require('./routes/usersRouter');
 const authRouter = require('./routes/authRouter'); // 👉 Route xử lý đăng ký / đăng nhập
 
 // Khởi tạo ứng dụng Express
@@ -47,7 +47,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ✅ Gắn router vào đúng route prefix
 app.use('/api/otp', otpRoute);           // ⬅ Đã sửa: rõ ràng hơn, tránh nhầm
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/api/users', usersRouter);
 app.use('/api/auth', authRouter);
 
 // Bắt lỗi 404 nếu không khớp route
@@ -65,7 +65,7 @@ app.use(function(err, req, res, next) {
 
 // Khởi động server
 const PORT = 6000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
 });
 
