@@ -1,72 +1,70 @@
-// models/User.js
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
-  // Email đăng nhập (duy nhất)
   email: {
     type: String,
-    required: true,
+    required: function () {
+      return this.role !== 'subuser'; // Subuser không cần email
+    },
     unique: true,
+    sparse: true, // Chỉ enforce unique nếu có giá trị
     maxlength: 100
   },
 
-  // Mật khẩu (được hash)
   password: {
     type: String,
     required: true
   },
 
-  // Vai trò người dùng: phụ huynh, tài khoản phụ, hoặc admin
   role: {
     type: String,
     enum: ['parent', 'subuser', 'admin'],
     default: 'parent'
   },
 
-  // ID người tạo nếu là tài khoản phụ (subuser)
   created_by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    default: null
+    default: null // Khi là parent thì null, subuser sẽ chứa ID của người tạo
   },
 
-  // Số dư tài khoản nếu có tính năng thanh toán
   balance: {
     type: mongoose.Decimal128,
     default: 0.00
   },
 
-  // Trạng thái xác minh email
   isVerified: {
     type: Boolean,
     default: false
   },
 
-  // Họ tên (tùy chọn)
   fullname: {
     type: String,
     default: ''
   },
 
-  // Số điện thoại (tùy chọn)
   numberphone: {
     type: String,
-    default: ''
+    required: function () {
+      return this.role === 'subuser'; // Subuser bắt buộc có số điện thoại
+    },
+    unique: function () {
+      return this.role === 'subuser'; // Unique chỉ cho subuser
+    },
+    sparse: true // Cho phép một số bản ghi không có numberphone
   },
 
-  // Ảnh đại diện (tùy chọn)
   image: {
     type: String,
     default: ''
   },
 
-  // Thời gian tạo
   created_at: {
     type: Date,
     default: Date.now
   }
 }, {
-  collection: 'users' // Đặt tên rõ ràng cho collection
+  collection: 'users'
 });
 
 module.exports = mongoose.model('User', UserSchema);

@@ -5,6 +5,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
+
 // Kết nối MongoDB
 const connectDB = require('./database/db');
 
@@ -48,7 +49,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/otp', otpRoute);           // ⬅ Đã sửa: rõ ràng hơn, tránh nhầm
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
-app.use('/api/auth', authRouter);
+//app.use('/api/auth', authRouter);
+// Cho phép truy cập ảnh tĩnh trong thư mục uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Bắt lỗi 404 nếu không khớp route
 app.use(function(req, res, next) {
