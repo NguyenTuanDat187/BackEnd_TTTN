@@ -5,7 +5,6 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
-
 // Kết nối MongoDB
 const connectDB = require('./database/db');
 
@@ -26,7 +25,8 @@ require('./models/SupportTicket');
 const otpRoute = require('./routes/otpRoute');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/usersRouter');
-const authRouter = require('./routes/authRouter'); // 👉 Route xử lý đăng ký / đăng nhập
+const authRouter = require('./routes/authRouter');
+const childRoutes = require('./routes/childRouter'); // ✅ Đã sửa đúng
 
 // Khởi tạo ứng dụng Express
 const app = express();
@@ -46,20 +46,22 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ✅ Gắn router vào đúng route prefix
-app.use('/api/otp', otpRoute);           // ⬅ Đã sửa: rõ ràng hơn, tránh nhầm
+app.use('/api/otp', otpRoute);
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
-//app.use('/api/auth', authRouter);
+app.use('/api/children', childRoutes);
+// app.use('/api/auth', authRouter); // Bỏ comment nếu cần dùng
+
 // Cho phép truy cập ảnh tĩnh trong thư mục uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Bắt lỗi 404 nếu không khớp route
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // Xử lý lỗi tổng thể
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
   res.status(err.status || 500);
