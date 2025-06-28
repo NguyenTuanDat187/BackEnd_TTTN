@@ -3,15 +3,22 @@ const Child = require('../models/Child');
 // ✅ Tạo hồ sơ trẻ mới
 exports.createChild = async (req, res) => {
   try {
-    const { user_id, name, dob, gender, avatar_url } = req.body;
+    const { name, dob, gender, avatar_url } = req.body;
+    const user_id = req.user?._id; // Lấy từ middleware auth
 
     if (!user_id || !name || !dob || !gender) {
       return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
     }
 
-    const newChild = new Child({ user_id, name, dob, gender, avatar_url });
-    const savedChild = await newChild.save();
+    const newChild = new Child({
+      user_id,
+      name,
+      dob,
+      gender,
+      avatar_url: avatar_url || null // không bắt buộc
+    });
 
+    const savedChild = await newChild.save();
     res.status(201).json({ success: true, data: savedChild });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
@@ -24,7 +31,6 @@ exports.getChildrenByUser = async (req, res) => {
     const { userId } = req.params;
 
     const children = await Child.find({ user_id: userId }).sort({ created_at: -1 });
-
     res.json({ success: true, data: children });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });

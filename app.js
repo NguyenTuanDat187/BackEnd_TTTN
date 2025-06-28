@@ -27,6 +27,8 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/usersRouter');
 const authRouter = require('./routes/authRouter');
 const childRoutes = require('./routes/childRouter'); // ✅ Đã sửa đúng
+const reminderRoutes = require('./routes/reminderRoutes'); // ✅ Đã sửa đúng
+
 
 // Khởi tạo ứng dụng Express
 const app = express();
@@ -50,6 +52,15 @@ app.use('/api/otp', otpRoute);
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/children', childRoutes);
+app.use('/api/reminders', reminderRoutes);
+
+console.log("Registered routes:");
+app._router.stack.forEach(r => {
+  if (r.route && r.route.path) {
+    console.log(`${Object.keys(r.route.methods)[0].toUpperCase()} ${r.route.path}`);
+  }
+});
+
 // app.use('/api/auth', authRouter); // Bỏ comment nếu cần dùng
 
 // Cho phép truy cập ảnh tĩnh trong thư mục uploads
