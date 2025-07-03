@@ -1,15 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const reminderController = require('../controllers/reminderController');
+const controller = require('../controllers/reminderController');
 
-router.post('/', reminderController.createReminder);
-router.get('/', reminderController.getAllReminders);
-router.get('/:id', reminderController.getReminderById);
-router.get('/by-child/:childId', reminderController.getReminderByChild);
-router.put('/:id', reminderController.updateReminder);
-router.delete('/:id', reminderController.deleteReminder);
-
-// ✅ API cập nhật trạng thái hoàn thành
-router.put('/:id/complete', reminderController.completeReminder);
+router.post('/', controller.createReminder);
+router.get('/', controller.getRemindersByUser); // GET /api/reminders?user_id=xyz
+router.get('/:id', controller.getReminderById);
+router.get('/by-child/:childId', controller.getRemindersByChild);
+router.put('/:id', controller.updateReminder);
+router.delete('/:id', controller.deleteReminder);
+router.put('/:id/complete', controller.completeReminder);
 
 module.exports = router;

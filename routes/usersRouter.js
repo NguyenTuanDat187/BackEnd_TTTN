@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/usersController'); // ✅ Đảm bảo file này tồn tại!
-const upload = require('../middlewares/uploadMiddleware');
+const upload = require('../middlewares/upload');
 
 router.post('/register', userController.registerParent);
 router.post('/login', userController.loginParent);

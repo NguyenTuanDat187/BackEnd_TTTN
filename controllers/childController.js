@@ -1,10 +1,12 @@
 const Child = require('../models/Child');
 
-// ✅ Tạo hồ sơ trẻ mới
 exports.createChild = async (req, res) => {
   try {
     const { name, dob, gender, avatar_url } = req.body;
-    const user_id = req.user?._id; // Lấy từ middleware auth
+    const user_id = req.user?._id || req.body.user_id; // ✅ Fix: fallback nếu req.user undefined
+
+    console.log('Req.user:', req.user); // ✅ Log để kiểm tra có user không
+    console.log('Req.body:', req.body); // ✅ Log để kiểm tra body gửi lên
 
     if (!user_id || !name || !dob || !gender) {
       return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
@@ -15,7 +17,7 @@ exports.createChild = async (req, res) => {
       name,
       dob,
       gender,
-      avatar_url: avatar_url || null // không bắt buộc
+      avatar_url: avatar_url || null
     });
 
     const savedChild = await newChild.save();
@@ -24,6 +26,8 @@ exports.createChild = async (req, res) => {
     res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
   }
 };
+
+
 
 // ✅ Lấy danh sách con của 1 người dùng
 exports.getChildrenByUser = async (req, res) => {

@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const ReminderSchema = new mongoose.Schema({
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   child_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Child',
@@ -46,7 +51,7 @@ const ReminderSchema = new mongoose.Schema({
   },
   is_completed: {
     type: Boolean,
-    default: false  // Mặc định chưa hoàn thành
+    default: false
   }
 }, { collection: 'reminders' });
 
