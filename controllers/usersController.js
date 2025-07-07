@@ -235,3 +235,39 @@ exports.createOrUpdateSubuserByPhone = async (req, res) => {
     return res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
+// ✅ Đăng nhập tài khoản phụ (subuser) bằng số điện thoại
+exports.loginSubuser = async (req, res) => {
+  try {
+    const { numberphone, password } = req.body;
+
+    if (!numberphone || !password) {
+      return res.status(400).json({ success: false, message: 'Thiếu số điện thoại hoặc mật khẩu' });
+    }
+
+    const user = await User.findOne({ numberphone, role: 'subuser' });
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Số điện thoại hoặc mật khẩu không chính xác' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Số điện thoại hoặc mật khẩu không chính xác' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Đăng nhập thành công!',
+      user: {
+        _id: user._id,
+        numberphone: user.numberphone,
+        fullname: user.fullname,
+        image: user.image,
+        role: user.role,
+        created_by: user.created_by
+      }
+    });
+  } catch (err) {
+    console.error('Đăng nhập subuser lỗi:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi server khi đăng nhập.' });
+  }
+};

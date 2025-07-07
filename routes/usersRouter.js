@@ -8,6 +8,8 @@ router.post('/login', userController.loginParent);
 router.post('/verify', userController.verifyOTP);
 router.post('/update', userController.updateUser);
 router.post('/subuser/create-or-update', userController.createOrUpdateSubuserByPhone);
+router.post('/login-subuser', userController.loginSubuser);
+
 
 
 router.get('/', (req, res) => {

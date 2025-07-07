@@ -32,6 +32,7 @@ const childRoutes = require('./routes/childRouter');
 const reminderRoutes = require('./routes/reminderRoutes');
 const postRoutes = require('./routes/postRoutes');
 const uploadRoutes = require('./routes/uploadRouter');
+const diaryEntriesRoutes = require('./routes/diaryEntriesRouter'); // Nếu bạn cần sử dụng router này, hãy bỏ comment dòng này
 
 
 // Khởi tạo ứng dụng Express
@@ -66,6 +67,7 @@ app.use('/api/children', childRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api', uploadRoutes); // Route prefix cho các API upload ảnh, ví dụ: /api/upload-multiple
+app.use('/api/diaryentries', diaryEntriesRoutes); // Nếu bạn cần sử dụng router nhật ký, hãy bỏ comment dòng này
 
 // app.use('/api/auth', authRouter); // Bỏ comment nếu bạn cần router xác thực
 
