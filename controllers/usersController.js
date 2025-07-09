@@ -1,273 +1,259 @@
 const User = require('../models/User');
 const OTP = require('../models/OTP');
-const sendEmail = require('../utils/sendEmail');
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
+const { generateToken } = require('../utils/token');
 
-// ✅ Đăng ký tài khoản cha mẹ
+
+
+
+// lấy danh sách người dùng
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find().select('-password'); // Ẩn password
+
+        res.status(200).json({
+            success: true,
+            message: 'Lấy danh sách người dùng thành công.',
+            users
+        });
+    } catch (err) {
+        console.error('Lỗi khi lấy danh sách user:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server khi lấy danh sách người dùng.'
+        });
+    }
+};
+
+// --- Đăng ký, Xác minh OTP, Đăng nhập --- //
+
 exports.registerParent = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: 'Email đã tồn tại' });
+    try {
+        const { email, password } = req.body;
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: 'Email đã tồn tại.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await User.create({
+            email,
+            password: hashedPassword,
+            isVerified: true, // ✅ Cho xác minh luôn
+            role: 'parent'
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Đăng ký thành công.',
+            user: {
+                _id: newUser._id,
+                email: newUser.email,
+                fullname: newUser.fullname || '',
+                numberphone: newUser.numberphone || '',
+                image: newUser.image || ''
+            }
+        });
+
+    } catch (err) {
+        console.error('Lỗi đăng ký:', err);
+        res.status(500).json({ success: false, message: 'Lỗi server khi đăng ký tài khoản.' });
     }
-
-    const hash = await bcrypt.hash(password, 10);
-    await User.create({ email, password: hash, isVerified: false });
-
-    // Gửi OTP nếu chưa có (chưa hết hạn)
-    const existingOtp = await OTP.findOne({ email, expiresAt: { $gt: new Date() } });
-    if (!existingOtp) {
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      await OTP.create({
-        email,
-        code,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000)
-      });
-      await sendEmail(email, 'Mã xác thực tài khoản FMCarer', `Mã OTP của bạn là: ${code}`);
-    }
-
-    res.status(200).json({ message: 'Đăng ký thành công! Vui lòng kiểm tra email.' });
-  } catch (err) {
-    console.error('Đăng ký lỗi:', err);
-    res.status(500).json({ message: 'Lỗi server khi đăng ký.' });
-  }
 };
 
-// ✅ Xác minh OTP
-exports.verifyOTP = async (req, res) => {
-  try {
-    const { email, code } = req.body;
-    const record = await OTP.findOne({ email });
-
-    if (!record || record.code !== code || record.expiresAt < new Date()) {
-      return res.status(400).json({ message: 'OTP không hợp lệ hoặc đã hết hạn' });
-    }
-
-    const user = await User.findOneAndUpdate({ email }, { isVerified: true }, { new: true });
-    await OTP.deleteMany({ email });
-
-    res.status(200).json({
-      message: 'Xác minh thành công!',
-      user: {
-        _id: user._id,
-        email: user.email,
-        role: user.role,
-        isVerified: user.isVerified
-      }
-    });
-  } catch (err) {
-    console.error('OTP lỗi:', err);
-    res.status(500).json({ message: 'Lỗi server khi xác minh OTP.' });
-  }
-};
-
-// ✅ Đăng nhập (email dùng cho parent)
 exports.loginParent = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu' });
+    try {
+        const { email, password } = req.body;
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ success: false, message: 'Sai mật khẩu' });
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: 'Vui lòng nhập email và mật khẩu.' });
+        }
 
-    res.status(200).json({
-      success: true,
-      message: 'Đăng nhập thành công!',
-      user: {
-        _id: user._id,
-        email: user.email,
-        role: user.role,
-        isVerified: user.isVerified,
-        fullname: user.fullname,
-        numberphone: user.numberphone,
-        image: user.image
-      }
-    });
-  } catch (err) {
-    console.error('Đăng nhập lỗi:', err);
-    res.status(500).json({ success: false, message: 'Lỗi server khi đăng nhập.' });
-  }
+        const user = await User.findOne({ email, role: 'parent' });
+        if (!user) {
+            return res.status(400).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu.' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu.' });
+        }
+
+        // ✅ Tạo token
+        const token = generateToken({ userId: user._id, role: user.role });
+
+        res.status(200).json({
+            success: true,
+            message: 'Đăng nhập thành công!',
+            token, // Trả về token cho client
+            user: {
+                _id: user._id,
+                email: user.email,
+                role: user.role,
+                isVerified: user.isVerified,
+                fullname: user.fullname,
+                numberphone: user.numberphone,
+                image: user.image
+            }
+        });
+    } catch (err) {
+        console.error('Lỗi đăng nhập:', err);
+        res.status(500).json({ success: false, message: 'Lỗi server khi đăng nhập.' });
+    }
 };
 
-// ✅ Cập nhật thông tin người dùng
+
+// --- Quản lý tài khoản --- //
+
 exports.updateUser = async (req, res) => {
-  try {
-    const { _id, fullname, numberphone, image } = req.body;
+    try {
+        const { _id, fullname, numberphone, image } = req.body;
 
-    if (!_id) {
-      return res.status(400).json({
-        success: false,
-        message: 'Thiếu _id người dùng để cập nhật.'
-      });
+        if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
+            return res.status(400).json({ success: false, message: 'ID người dùng không hợp lệ.' });
+        }
+
+        const user = await User.findById(_id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+        }
+
+        if (fullname !== undefined) user.fullname = fullname;
+        if (numberphone !== undefined) user.numberphone = numberphone;
+        if (image !== undefined) user.image = image;
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Cập nhật thành công.',
+            user
+        });
+    } catch (err) {
+        console.error('Lỗi cập nhật:', err);
+        res.status(500).json({ success: false, message: 'Lỗi server khi cập nhật người dùng.' });
     }
-
-    const user = await User.findById(_id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy người dùng.'
-      });
-    }
-
-    if (fullname !== undefined) user.fullname = fullname;
-    if (numberphone !== undefined) user.numberphone = numberphone;
-    if (image !== undefined) user.image = image;
-
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message: 'Cập nhật thông tin thành công.',
-      user: {
-        _id: user._id,
-        email: user.email,
-        fullname: user.fullname,
-        numberphone: user.numberphone,
-        image: user.image,
-        role: user.role
-      }
-    });
-  } catch (err) {
-    console.error('Lỗi khi cập nhật user:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Lỗi server khi cập nhật người dùng.'
-    });
-  }
 };
 
-// ✅ Upload ảnh đại diện
-exports.uploadAvatar = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'Không có file được tải lên' });
-    }
+// --- Subuser (con) --- //
 
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-
-    return res.status(200).json({
-      success: true,
-      message: 'Tải ảnh thành công',
-      imageUrl
-    });
-  } catch (error) {
-    console.error('Lỗi upload:', error);
-    return res.status(500).json({ success: false, message: 'Lỗi server khi upload ảnh' });
-  }
-};
-
-;
-
-
-// ✅ Tạo hoặc cập nhật SubUser dựa trên số điện thoại & parentId
 exports.createOrUpdateSubuserByPhone = async (req, res) => {
-  try {
-    const { numberphone, password, fullname, image, parentId, relationship } = req.body;
+    try {
+        const { numberphone, password, fullname, image, parentId } = req.body;
+        const relationship = req.body.relationship || 'unknown';
 
-    console.log('📥 Nhận yêu cầu tạo/cập nhật SubUser:', req.body);
+        if (!numberphone || !password || !parentId) {
+            return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin.' });
+        }
 
-    // 📌 Kiểm tra dữ liệu đầu vào
-    if (!numberphone?.trim() || !password?.trim() || !parentId?.trim()) {
-      return res.status(400).json({
-        message: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc (số điện thoại, mật khẩu, parentId)'
-      });
+        if (!mongoose.Types.ObjectId.isValid(parentId)) {
+            return res.status(400).json({ message: 'parentId không hợp lệ.' });
+        }
+
+        const parent = await User.findOne({ _id: parentId, role: 'parent' });
+        if (!parent) {
+            return res.status(400).json({ message: 'Không tìm thấy parent.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        let subuser = await User.findOne({ numberphone, role: 'subuser', created_by: parentId });
+
+        if (subuser) {
+            subuser.password = hashedPassword;
+            subuser.fullname = fullname ?? subuser.fullname;
+            subuser.image = image ?? subuser.image;
+            subuser.relationship = relationship;
+            await subuser.save();
+
+            return res.status(200).json({ message: 'Cập nhật subuser thành công.', user: subuser });
+        }
+
+        const subuserCount = await User.countDocuments({ role: 'subuser', created_by: parentId });
+        if (subuserCount >= 10) {
+            return res.status(400).json({ message: 'Đã đạt giới hạn 10 subuser.' });
+        }
+
+        subuser = new User({
+            numberphone,
+            password: hashedPassword,
+            fullname: fullname || '',
+            image: image || '',
+            role: 'subuser',
+            created_by: parentId,
+            relationship,
+            email: null
+        });
+
+        await subuser.save();
+
+        return res.status(201).json({ message: 'Tạo subuser thành công.', user: subuser });
+    } catch (error) {
+        console.error('Lỗi xử lý subuser:', error);
+        res.status(500).json({ message: 'Lỗi server', error: error.message });
     }
-
-    // 📌 Kiểm tra parentId hợp lệ
-    if (!mongoose.Types.ObjectId.isValid(parentId)) {
-      return res.status(400).json({ message: 'parentId không hợp lệ' });
-    }
-
-    // 📌 Kiểm tra xem parent có tồn tại không
-    const parent = await User.findOne({ _id: parentId, role: 'parent' });
-    if (!parent) {
-      return res.status(400).json({ message: 'Không tìm thấy tài khoản cha (parent)' });
-    }
-
-    // 📌 Mã hóa mật khẩu
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 📌 Kiểm tra nếu SubUser đã tồn tại theo số điện thoại và parentId
-    let subuser = await User.findOne({ numberphone, role: 'subuser', created_by: parentId });
-
-    if (subuser) {
-      // ✅ Nếu tồn tại → cập nhật lại
-      subuser.password = hashedPassword;
-      subuser.fullname = fullname || subuser.fullname;
-      subuser.image = image || subuser.image;
-      await subuser.save();
-
-      return res.status(200).json({
-        message: 'Cập nhật tài khoản phụ thành công',
-        user: subuser
-      });
-    }
-
-    // 📌 Kiểm tra số lượng subuser của parent
-    const count = await User.countDocuments({ role: 'subuser', created_by: parentId });
-    if (count >= 10) {
-      return res.status(400).json({ message: 'Bạn đã tạo tối đa 10 tài khoản phụ' });
-    }
-
-    // ✅ Nếu chưa tồn tại → tạo mới subuser
-    subuser = new User({
-      numberphone,
-      password: hashedPassword,
-      fullname: fullname || '',
-      image: image || '',
-      role: 'subuser',
-      created_by: parentId,
-      email: null // Email không cần thiết cho subuser
-    });
-
-    await subuser.save();
-
-    return res.status(201).json({
-      message: 'Tạo tài khoản phụ thành công',
-      user: subuser
-    });
-
-  } catch (error) {
-    console.error('❌ Lỗi khi xử lý SubUser:', error.message);
-    return res.status(500).json({ message: 'Lỗi server', error: error.message });
-  }
 };
-// ✅ Đăng nhập tài khoản phụ (subuser) bằng số điện thoại
+
 exports.loginSubuser = async (req, res) => {
-  try {
-    const { numberphone, password } = req.body;
+    try {
+        const { numberphone, password } = req.body;
 
-    if (!numberphone || !password) {
-      return res.status(400).json({ success: false, message: 'Thiếu số điện thoại hoặc mật khẩu' });
+        if (!numberphone || !password) {
+            return res.status(400).json({ message: 'Thiếu số điện thoại hoặc mật khẩu.' });
+        }
+
+        const user = await User.findOne({ numberphone, role: 'subuser' });
+        if (!user) {
+            return res.status(400).json({ message: 'Số điện thoại hoặc mật khẩu sai.' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Số điện thoại hoặc mật khẩu sai.' });
+        }
+
+        res.status(200).json({
+            message: 'Đăng nhập thành công!',
+            user
+        });
+    } catch (err) {
+        console.error('Lỗi đăng nhập subuser:', err);
+        res.status(500).json({ message: 'Lỗi server khi đăng nhập subuser.' });
     }
+};
+exports.uploadAvatar = async (req, res) => {
+    try {
+        const { userId } = req.body;
 
-    const user = await User.findOne({ numberphone, role: 'subuser' });
-    if (!user) {
-      return res.status(400).json({ success: false, message: 'Số điện thoại hoặc mật khẩu không chính xác' });
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: 'ID người dùng không hợp lệ.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Không tìm thấy file ảnh.' });
+        }
+
+        // Lưu đường dẫn file (tuỳ cấu hình Multer - có thể cần chỉnh path phù hợp)
+        const imagePath = `/uploads/${req.file.filename}`;
+        user.image = imagePath;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Tải ảnh lên thành công.',
+            image: imagePath,
+            user
+        });
+    } catch (err) {
+        console.error('Lỗi upload avatar:', err);
+        res.status(500).json({ success: false, message: 'Lỗi server khi upload ảnh.' });
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ success: false, message: 'Số điện thoại hoặc mật khẩu không chính xác' });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'Đăng nhập thành công!',
-      user: {
-        _id: user._id,
-        numberphone: user.numberphone,
-        fullname: user.fullname,
-        image: user.image,
-        role: user.role,
-        created_by: user.created_by
-      }
-    });
-  } catch (err) {
-    console.error('Đăng nhập subuser lỗi:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server khi đăng nhập.' });
-  }
 };

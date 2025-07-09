@@ -1,15 +1,48 @@
 const Child = require('../models/Child');
 
+// ✅ Lấy danh sách trẻ theo user từ token
+exports.getChildrenByUser = async (req, res) => {
+  try {
+    const user_id = req.user?.userId;
+
+    if (!user_id) {
+      return res.status(401).json({ success: false, message: 'Không xác định được người dùng từ token.' });
+    }
+
+    const children = await Child.find({ user_id }).sort({ created_at: -1 });
+    return res.json({ success: true, data: children });
+  } catch (err) {
+    console.error('Lỗi lấy danh sách trẻ:', err);
+    res.status(500).json({ success: false, message: 'Lỗi server khi lấy danh sách trẻ', error: err.message });
+  }
+};
+
+// ✅ Lấy thông tin 1 trẻ, chỉ cho lấy nếu là con của user
+exports.getChildById = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const user_id = req.user?.userId;
+
+    const child = await Child.findOne({ _id: childId, user_id });
+    if (!child) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy trẻ hoặc không có quyền truy cập' });
+    }
+
+    return res.json({ success: true, data: child });
+  } catch (err) {
+    console.error('Lỗi lấy chi tiết trẻ:', err);
+    res.status(500).json({ success: false, message: 'Lỗi server khi lấy trẻ', error: err.message });
+  }
+};
+
+// ✅ Thêm mới trẻ
 exports.createChild = async (req, res) => {
   try {
+    const user_id = req.user?.userId;
     const { name, dob, gender, avatar_url } = req.body;
-    const user_id = req.user?._id || req.body.user_id; // ✅ Fix: fallback nếu req.user undefined
-
-    console.log('Req.user:', req.user); // ✅ Log để kiểm tra có user không
-    console.log('Req.body:', req.body); // ✅ Log để kiểm tra body gửi lên
 
     if (!user_id || !name || !dob || !gender) {
-      return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập đầy đủ thông tin bắt buộc' });
     }
 
     const newChild = new Child({
@@ -21,61 +54,54 @@ exports.createChild = async (req, res) => {
     });
 
     const savedChild = await newChild.save();
-    res.status(201).json({ success: true, data: savedChild });
+    return res.status(201).json({ success: true, data: savedChild });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
+    console.error('Lỗi tạo trẻ:', err);
+    res.status(500).json({ success: false, message: 'Lỗi server khi tạo trẻ', error: err.message });
   }
 };
 
-
-
-// ✅ Lấy danh sách con của 1 người dùng
-exports.getChildrenByUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const children = await Child.find({ user_id: userId }).sort({ created_at: -1 });
-    res.json({ success: true, data: children });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
-
-// ✅ Cập nhật thông tin trẻ
+// ✅ Cập nhật thông tin trẻ, chỉ nếu là con của user
 exports.updateChild = async (req, res) => {
   try {
     const { childId } = req.params;
     const { name, dob, gender, avatar_url } = req.body;
+    const user_id = req.user?.userId;
 
-    const updatedChild = await Child.findByIdAndUpdate(
-      childId,
-      { name, dob, gender, avatar_url },
-      { new: true }
-    );
-
-    if (!updatedChild) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy trẻ' });
+    const child = await Child.findOne({ _id: childId, user_id });
+    if (!child) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy trẻ hoặc không có quyền cập nhật' });
     }
 
-    res.json({ success: true, data: updatedChild });
+    // Cập nhật dữ liệu
+    if (name !== undefined) child.name = name;
+    if (dob !== undefined) child.dob = dob;
+    if (gender !== undefined) child.gender = gender;
+    if (avatar_url !== undefined) child.avatar_url = avatar_url;
+
+    const updated = await child.save();
+
+    return res.json({ success: true, data: updated });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
+    console.error('Lỗi cập nhật trẻ:', err);
+    res.status(500).json({ success: false, message: 'Lỗi server khi cập nhật trẻ', error: err.message });
   }
 };
 
-// ✅ Xóa hồ sơ trẻ
+// ✅ Xóa trẻ, chỉ nếu là con của user
 exports.deleteChild = async (req, res) => {
   try {
     const { childId } = req.params;
+    const user_id = req.user?.userId;
 
-    const deleted = await Child.findByIdAndDelete(childId);
-
+    const deleted = await Child.findOneAndDelete({ _id: childId, user_id });
     if (!deleted) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy trẻ để xóa' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy trẻ hoặc không có quyền xóa' });
     }
 
-    res.json({ success: true, message: 'Đã xóa trẻ thành công' });
+    return res.json({ success: true, message: 'Xóa trẻ thành công' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
+    console.error('Lỗi xóa trẻ:', err);
+    res.status(500).json({ success: false, message: 'Lỗi server khi xóa trẻ', error: err.message });
   }
 };

@@ -4,8 +4,8 @@ const Child = require('../models/Child');
 // ✅ Tạo Reminder mới
 exports.createReminder = async (req, res) => {
   try {
+    const user_id = req.user?.userId;
     const {
-      user_id,
       child_id,
       type,
       note,
@@ -50,12 +50,12 @@ exports.createReminder = async (req, res) => {
   }
 };
 
-// ✅ Lấy tất cả reminders theo user_id
+// ✅ Lấy tất cả reminders theo user_id từ token
 exports.getRemindersByUser = async (req, res) => {
   try {
-    const { user_id } = req.query;
+    const user_id = req.user?.userId;
     if (!user_id) {
-      return res.status(400).json({ success: false, message: 'Thiếu user_id' });
+      return res.status(401).json({ success: false, message: 'Không xác định được người dùng từ token' });
     }
 
     const reminders = await Reminder.find({ user_id }).populate('child_id');
@@ -65,12 +65,13 @@ exports.getRemindersByUser = async (req, res) => {
   }
 };
 
-// ✅ Lấy Reminder theo ID
+// ✅ Lấy Reminder theo ID (có kiểm tra user_id)
 exports.getReminderById = async (req, res) => {
   try {
-    const reminder = await Reminder.findById(req.params.id).populate('child_id');
+    const user_id = req.user?.userId;
+    const reminder = await Reminder.findOne({ _id: req.params.id, user_id }).populate('child_id');
     if (!reminder) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy reminder' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy reminder hoặc không có quyền truy cập' });
     }
     res.json({ success: true, data: reminder });
   } catch (error) {
@@ -78,28 +79,36 @@ exports.getReminderById = async (req, res) => {
   }
 };
 
-// ✅ Lấy Reminder theo Child ID
+// ✅ Lấy Reminder theo Child ID (có kiểm tra user_id)
 exports.getRemindersByChild = async (req, res) => {
   try {
+    const user_id = req.user?.userId;
     const { childId } = req.params;
-    const reminders = await Reminder.find({ child_id: childId }).populate('child_id');
+
+    // Kiểm tra quyền truy cập child
+    const child = await Child.findOne({ _id: childId, user_id });
+    if (!child) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy trẻ hoặc không có quyền truy cập' });
+    }
+
+    const reminders = await Reminder.find({ child_id: childId, user_id }).populate('child_id');
     res.json({ success: true, data: reminders });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Lỗi khi lấy reminder theo trẻ', error: error.message });
   }
 };
 
-// ✅ Cập nhật Reminder
+// ✅ Cập nhật Reminder (có kiểm tra user)
 exports.updateReminder = async (req, res) => {
   try {
-    const updated = await Reminder.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!updated) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy reminder để cập nhật' });
+    const user_id = req.user?.userId;
+    const reminder = await Reminder.findOne({ _id: req.params.id, user_id });
+    if (!reminder) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy reminder hoặc không có quyền cập nhật' });
     }
+
+    Object.assign(reminder, req.body);
+    const updated = await reminder.save();
     const populated = await updated.populate('child_id');
     res.json({ success: true, data: populated });
   } catch (error) {
@@ -107,12 +116,13 @@ exports.updateReminder = async (req, res) => {
   }
 };
 
-// ✅ Xoá Reminder
+// ✅ Xoá Reminder (có kiểm tra user)
 exports.deleteReminder = async (req, res) => {
   try {
-    const deleted = await Reminder.findByIdAndDelete(req.params.id);
+    const user_id = req.user?.userId;
+    const deleted = await Reminder.findOneAndDelete({ _id: req.params.id, user_id });
     if (!deleted) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy reminder để xoá' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy reminder hoặc không có quyền xoá' });
     }
     res.json({ success: true, message: 'Đã xoá reminder thành công' });
   } catch (error) {
@@ -120,19 +130,17 @@ exports.deleteReminder = async (req, res) => {
   }
 };
 
-// ✅ Cập nhật trạng thái hoàn thành
+// ✅ Cập nhật trạng thái hoàn thành (có kiểm tra user)
 exports.completeReminder = async (req, res) => {
   try {
-    const updated = await Reminder.findByIdAndUpdate(
-      req.params.id,
-      { is_completed: true },
-      { new: true }
-    );
-
-    if (!updated) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy reminder để cập nhật hoàn thành' });
+    const user_id = req.user?.userId;
+    const reminder = await Reminder.findOne({ _id: req.params.id, user_id });
+    if (!reminder) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy reminder hoặc không có quyền cập nhật' });
     }
 
+    reminder.is_completed = true;
+    const updated = await reminder.save();
     const populated = await updated.populate('child_id');
     res.json({ success: true, message: 'Đã hoàn thành nhắc nhở', data: populated });
   } catch (error) {

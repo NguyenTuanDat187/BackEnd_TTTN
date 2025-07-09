@@ -17,16 +17,18 @@ const UserSchema = new mongoose.Schema({
   },
 
   role: {
-    type: String,
-    enum: ['parent', 'subuser', 'admin'],
-    default: 'parent'
-  },
+  type: String,
+  enum: ['parent', 'subuser', 'admin'],
+  default: 'parent',
+  index: true // Thêm index cho role
+},
 
-  created_by: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null // Khi là parent thì null, subuser sẽ chứa ID của người tạo
-  },
+created_by: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'User',
+  default: null,
+  index: true // Thêm index cho created_by
+},
 
   balance: {
     type: mongoose.Decimal128,
