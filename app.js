@@ -74,12 +74,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Đảm bảo tiền tố ở đây khớp với URL mà client gọi
 // Ví dụ: nếu router.post('/send-otp', ...) thì client gọi POST /api/users/send-otp
 app.use('/api/users', usersRouter); // Các route chung liên quan đến người dùng (đăng ký, đăng nhập...)
-app.use('/api/users', otpRoute); // ✅ Đã thay đổi từ '/api/otp' thành '/api/users'
-                                 // Lý do: Lỗi 404 trước đó là POST /api/users/send-otp
-                                 // Việc gắn otpRoute vào /api/users sẽ làm cho /send-otp trong otpRoute
-                                 // trở thành /api/users/send-otp.
-                                 // Đảm bảo không có xung đột route giữa usersRouter và otpRoute.
-
+app.use('/api/users', otpRoute); 
 app.use('/', indexRouter); // Router cho trang chủ hoặc các route không có tiền tố API
 app.use('/api/children', childRoutes); // Các route liên quan đến trẻ em
 app.use('/api/reminders', reminderRoutes); // Các route liên quan đến nhắc nhở
