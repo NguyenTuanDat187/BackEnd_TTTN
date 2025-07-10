@@ -12,7 +12,8 @@ exports.getAllPosts = async (req, res) => {
                 const user = await User.findById(post.id_user).lean();
                 if (user) {
                     post.fullname = user.fullname;
-                    post.image = user.avatar_url || user.image; // tuỳ cột nào lưu ảnh
+                    // Sử dụng avatar_url nếu có, nếu không thì dùng image, nếu cả hai đều không thì là chuỗi rỗng
+                    post.image = user.avatar_url || user.image || '';
                 } else {
                     post.fullname = 'Ẩn danh';
                     post.image = '';
@@ -25,7 +26,7 @@ exports.getAllPosts = async (req, res) => {
 
     } catch (error) {
         console.error('Error getAllPosts:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' }); // Thêm success: false cho lỗi
+        res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message }); // Thêm error.message để debug
     }
 };
 
@@ -33,39 +34,37 @@ exports.getAllPosts = async (req, res) => {
 // [2] Tạo bài viết mới
 exports.createPost = async (req, res) => {
     try {
-        // Đảm bảo các trường nhận được khớp với PostRequest bên Android
-        const { userId, userName, userAvatar, content, selectedVisibility, mediaUrls } = req.body; // Cập nhật tên biến để khớp với Android
+        const { userId, content, selectedVisibility, mediaUrls } = req.body;
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' }); // Thêm success: false
+            return res.status(404).json({ success: false, message: 'User not found.' });
         }
 
+        // ✅ Đảm bảo fullname và image luôn có giá trị, tránh undefined/null
+        const postFullname = user.fullname || 'Ẩn danh';
+        const postImage = user.avatar_url || user.image || ''; // Ưu tiên avatar_url, sau đó là image, cuối cùng là rỗng
+
         const newPost = new Post({
-            id_user: user._id,
-            fullname: userName, // Sử dụng userName từ request body
-            image: userAvatar, // Sử dụng userAvatar từ request body
-            content,
-            media_urls: mediaUrls, // Sử dụng mediaUrls từ request body
-            visibility: selectedVisibility // Sử dụng selectedVisibility từ request body
+            id_user: userId,
+            fullname: postFullname, // ✅ Lấy từ User model với fallback
+            image: postImage,       // ✅ Lấy từ User model với fallback
+            content: content,
+            media_urls: mediaUrls,
+            visibility: selectedVisibility,
+            status: 'active'
         });
 
-        await newPost.save();
-
-        // ✅ CHỈNH SỬA TẠI ĐÂY: Thêm 'success: true' vào phản hồi
+        const savedPost = await newPost.save();
         res.status(201).json({
-            success: true, // QUAN TRỌNG: Điều này làm cho Android nhận diện là thành công
-            message: 'Bài viết đã được tạo thành công.',
-            post: newPost
+            success: true,
+            message: 'Post created successfully',
+            post: savedPost
         });
+
     } catch (error) {
-        console.error('Error createPost:', error);
-        // ✅ CHỈNH SỬA TẠI ĐÂY: Thêm 'success: false' vào phản hồi khi có lỗi
-        res.status(500).json({
-            success: false, // QUAN TRỌNG: Điều này làm cho Android nhận diện là thất bại
-            message: 'Đã xảy ra lỗi server khi tạo bài viết.',
-            error: error.message // Cung cấp chi tiết lỗi để debug
-        });
+        console.error('Error creating post:', error); // Log lỗi chi tiết để debug 500
+        res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
     }
 };
 
@@ -88,13 +87,13 @@ exports.updatePost = async (req, res) => {
         );
 
         if (!updated) {
-            return res.status(404).json({ success: false, message: 'Post not found' }); // Thêm success: false
+            return res.status(404).json({ success: false, message: 'Post not found' });
         }
 
-        res.status(200).json({ success: true, message: 'Post updated successfully', post: updated }); // Thêm success: true
+        res.status(200).json({ success: true, message: 'Post updated successfully', post: updated });
     } catch (error) {
         console.error('Error updatePost:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' }); // Thêm success: false
+        res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message }); // Thêm error.message để debug
     }
 };
 
@@ -105,13 +104,13 @@ exports.deletePost = async (req, res) => {
 
         const deleted = await Post.findByIdAndDelete(postId);
         if (!deleted) {
-            return res.status(404).json({ success: false, message: 'Post not found' }); // Thêm success: false
+            return res.status(404).json({ success: false, message: 'Post not found' });
         }
 
-        res.status(200).json({ success: true, message: 'Post deleted successfully' }); // Thêm success: true
+        res.status(200).json({ success: true, message: 'Post deleted successfully' });
     } catch (error) {
         console.error('Error deletePost:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' }); // Thêm success: false
+        res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message }); // Thêm error.message để debug
     }
 };
 
