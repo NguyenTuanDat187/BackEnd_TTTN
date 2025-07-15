@@ -42,5 +42,7 @@ router.post('/login-subuser', userController.loginSubuser);
 router.get('/', (req, res) => {
   res.send('🟢 userRouter hoạt động!');
 });
+// Xác thực mật khẩu
+router.post('/verify-password', userController.verifyPassword);
 
 module.exports = router;

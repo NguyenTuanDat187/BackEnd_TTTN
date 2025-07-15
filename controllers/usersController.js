@@ -316,71 +316,114 @@ exports.createOrUpdateSubuser = async (req, res) => {
         let { numberphone, password, fullname, image, parentId } = req.body;
         const relationship = req.body.relationship || 'unknown';
 
-        // Chuẩn hóa số điện thoại trước khi sử dụng
-        numberphone = normalizePhoneNumber(numberphone);
+        // --- CONSOLE LOG 1: Log toàn bộ request body nhận được ---
+        console.log(`[DEBUG - createOrUpdateSubuser] Received request body: ${JSON.stringify(req.body)}`);
 
+        // Chuẩn hóa số điện thoại
+        numberphone = normalizePhoneNumber(numberphone);
+        // --- CONSOLE LOG 2: Log số điện thoại sau khi chuẩn hóa ---
+        console.log(`[DEBUG - createOrUpdateSubuser] Normalized numberphone: ${numberphone}`);
+
+        // Kiểm tra các trường bắt buộc
         if (!numberphone || !password || !parentId) {
+            // --- CONSOLE ERROR 3: Cảnh báo lỗi thiếu trường ---
+            console.error(`[ERROR - createOrUpdateSubuser] Bad Request: Missing required fields. numberphone: ${!!numberphone}, password: ${!!password}, parentId: ${!!parentId}. Full Request Body: ${JSON.stringify(req.body)}`);
             return res.status(400).json({ success: false, message: 'Vui lòng nhập đầy đủ thông tin: số điện thoại, mật khẩu, và Parent ID.' });
         }
 
+        // Kiểm tra định dạng Parent ID
         if (!mongoose.Types.ObjectId.isValid(parentId)) {
+            // --- CONSOLE ERROR 4: Cảnh báo lỗi định dạng Parent ID ---
+            console.error(`[ERROR - createOrUpdateSubuser] Bad Request: Invalid Parent ID format provided: ${parentId}.`);
             return res.status(400).json({ success: false, message: 'Parent ID không hợp lệ.' });
         }
 
         // Đảm bảo parentId tồn tại và có role 'parent'
         const parent = await User.findOne({ _id: parentId, role: 'parent' });
+        // --- CONSOLE LOG 5: Kiểm tra kết quả tìm Parent ---
+        console.log(`[DEBUG - createOrUpdateSubuser] Parent check result for ID ${parentId}: ${parent ? 'Found' : 'Not Found or wrong role'}`);
         if (!parent) {
+            // --- CONSOLE ERROR 6: Cảnh báo Parent không tồn tại ---
+            console.error(`[ERROR - createOrUpdateSubuser] Bad Request: Parent account not found or does not have 'parent' role for ID: ${parentId}.`);
             return res.status(400).json({ success: false, message: 'Không tìm thấy tài khoản Parent với Parent ID này.' });
         }
 
+        // Hash mật khẩu
         const hashedPassword = await bcrypt.hash(password, 10);
+        // --- CONSOLE LOG 7: Thông báo mật khẩu đã được hash ---
+        console.log(`[DEBUG - createOrUpdateSubuser] Password hashed successfully for numberphone: ${numberphone}`);
 
         // Tìm subuser hiện có bằng numberphone và parentId
         let subuser = await User.findOne({ numberphone, role: 'subuser', created_by: parentId });
+        // --- CONSOLE LOG 8: Thông báo kết quả tìm kiếm subuser hiện có ---
+        console.log(`[DEBUG - createOrUpdateSubuser] Searching for existing subuser with numberphone ${numberphone} and created_by ${parentId}. Found: ${subuser ? 'Yes, ID: ' + subuser._id : 'No'}.`);
+
 
         if (subuser) {
-            // Nếu subuser đã tồn tại, cập nhật thông tin
-            subuser.password = hashedPassword; // Cập nhật mật khẩu
-            subuser.fullname = fullname ?? subuser.fullname; // Cập nhật fullname nếu có
-            subuser.image = image ?? subuser.image; // Cập nhật image nếu có
-            subuser.relationship = relationship; // Cập nhật relationship
-            // KHÔNG CẬP NHẬT EMAIL KHI LÀ SUBUSER ĐỂ TRÁNH LỖI DUPLICATE KEY
+            // --- CONSOLE INFO 9: Bắt đầu quá trình cập nhật subuser ---
+            console.log(`[INFO - createOrUpdateSubuser] Updating existing subuser (ID: ${subuser._id}) for parent (ID: ${parentId}).`);
+            
+            // Cập nhật các trường
+            subuser.password = hashedPassword;
+            subuser.fullname = fullname ?? subuser.fullname;
+            subuser.image = image ?? subuser.image;
+            subuser.relationship = relationship;
+
             await subuser.save();
+            // --- CONSOLE INFO 10: Thông báo cập nhật thành công ---
+            console.log(`[INFO - createOrUpdateSubuser] Subuser (ID: ${subuser._id}) updated successfully.`);
 
             return res.status(200).json({ success: true, message: 'Cập nhật subuser thành công.', user: subuser });
         }
 
         // Nếu subuser chưa tồn tại, kiểm tra giới hạn số lượng subuser
         const subuserCount = await User.countDocuments({ role: 'subuser', created_by: parentId });
-        if (subuserCount >= 10) { // Giới hạn 10 subuser cho mỗi parent
+        // --- CONSOLE LOG 11: Thông báo số lượng subuser hiện tại ---
+        console.log(`[DEBUG - createOrUpdateSubuser] Subuser count for parent ${parentId}: ${subuserCount}.`);
+        
+        if (subuserCount >= 10) {
+            // --- CONSOLE WARN 12: Cảnh báo vượt quá giới hạn subuser ---
+            console.warn(`[WARN - createOrUpdateSubuser] Failed to create subuser: Parent ${parentId} has reached the limit of 10 subusers.`);
             return res.status(400).json({ success: false, message: 'Tài khoản Parent đã đạt giới hạn 10 subuser.' });
         }
 
         // Tạo email placeholder duy nhất cho subuser mới
-        // Sử dụng timestamp và một phần của UUID để đảm bảo tính duy nhất
         const uniqueEmail = `subuser_${Date.now()}_${crypto.randomBytes(4).toString('hex')}@fmcarer.com`;
+        // --- CONSOLE LOG 13: Thông báo email placeholder được tạo ---
+        console.log(`[DEBUG - createOrUpdateSubuser] Generated unique email for new subuser: ${uniqueEmail}`);
 
         // Tạo subuser mới
         subuser = new User({
-            numberphone, // Sử dụng số điện thoại đã được chuẩn hóa
+            numberphone,
             password: hashedPassword,
             fullname: fullname || '',
             image: image || '',
             role: 'subuser',
-            created_by: parentId, // Liên kết với parent
-            relationship,
-            email: uniqueEmail // Gán email placeholder duy nhất
+            created_by: parentId,
+            email: uniqueEmail
         });
 
         await subuser.save();
+        // --- CONSOLE INFO 14: Thông báo tạo subuser mới thành công ---
+        console.log(`[INFO - createOrUpdateSubuser] New subuser created successfully. Subuser ID: ${subuser._id}.`);
 
         return res.status(201).json({ success: true, message: 'Tạo subuser thành công.', user: subuser });
+
     } catch (error) {
-        console.error('Lỗi khi tạo hoặc cập nhật subuser:', error);
-        // Kiểm tra nếu lỗi là do duplicate key trên email
+        // --- CONSOLE ERROR 15: Log lỗi tổng quát (quan trọng) ---
+        console.error(`[CRITICAL ERROR - createOrUpdateSubuser] Caught exception: ${error.message}`);
+        console.error(`Stack trace:`, error.stack); // Hiển thị stack trace
+        console.error(`Request body that caused error:`, req.body); // Hiển thị request body gây lỗi
+        console.error(`Full error object:`, error); // Hiển thị toàn bộ đối tượng lỗi
+
+        // Xử lý lỗi trùng lặp email (MongoDB E11000 duplicate key error)
         if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+            // --- CONSOLE WARN 16: Cảnh báo lỗi trùng lặp email ---
+            console.warn(`[WARN - createOrUpdateSubuser] Duplicate email error detected during subuser creation/update. Email pattern: ${JSON.stringify(error.keyPattern)}`);
             return res.status(400).json({ success: false, message: 'Lỗi trùng lặp email. Vui lòng thử lại hoặc liên hệ hỗ trợ.' });
         }
+        
+        // Trả về lỗi server mặc định
         res.status(500).json({ success: false, message: 'Lỗi server khi xử lý subuser.', error: error.message });
     }
 };
@@ -460,5 +503,35 @@ exports.loginSubuser = async (req, res) => {
     } catch (err) {
         console.error('Lỗi đăng nhập subuser:', err);
         res.status(500).json({ success: false, message: 'Lỗi server khi đăng nhập subuser.' });
+    }
+};
+
+// hàm xác thực mật khẩu 
+exports.verifyPassword = async (req, res) => {
+    try {
+        const { userId, password } = req.body;
+
+        if (!userId || !password) {
+            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp ID người dùng và mật khẩu.' });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Người dùng không tồn tại.' });
+        }
+
+        // So sánh mật khẩu được cung cấp với mật khẩu đã hash trong DB
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: 'Mật khẩu không đúng.' });
+        }
+
+        res.status(200).json({ success: true, message: 'Mật khẩu đã được xác thực thành công.' });
+
+    } catch (err) {
+        console.error('Lỗi khi xác thực mật khẩu:', err);
+        res.status(500).json({ success: false, message: 'Lỗi server khi xác thực mật khẩu.' });
     }
 };
