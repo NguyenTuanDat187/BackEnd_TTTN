@@ -120,6 +120,14 @@ exports.loginParent = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu.' });
         }
 
+        // --- BẮT ĐẦU THÊM KIỂM TRA isSuspended ---
+        if (user.isSuspended) {
+            console.log(`❌ Đăng nhập tài khoản chính thất bại: Tài khoản '${email}' đã bị đình chỉ.`);
+            return res.status(403).json({ success: false, message: 'Tài khoản của bạn đã bị đình chỉ. Vui lòng liên hệ quản trị viên.' });
+        }
+        // --- KẾT THÚC THÊM KIỂM TRA isSuspended ---
+
+
         // So sánh mật khẩu
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -128,6 +136,13 @@ exports.loginParent = async (req, res) => {
 
         // Tạo JWT token
         const token = generateToken({ userId: user._id, role: user.role });
+
+        // Bạn có thể cân nhắc lưu token vào cookie nếu muốn quản lý phiên từ server-side
+        // res.cookie('token', token, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     maxAge: 24 * 60 * 60 * 1000
+        // });
 
         res.status(200).json({
             success: true,
@@ -148,6 +163,7 @@ exports.loginParent = async (req, res) => {
         res.status(500).json({ success: false, message: 'Lỗi server khi đăng nhập tài khoản chính.' });
     }
 };
+
 
 // --- Quản lý thông tin tài khoản (Parent hoặc Subuser) --- //
 

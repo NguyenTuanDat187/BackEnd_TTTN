@@ -40,6 +40,8 @@ const reminderRoutes = require('./routes/reminderRoutes'); // Router cho các ch
 const postRoutes = require('./routes/postRoutes'); // Router cho các bài viết/post
 const uploadRoutes = require('./routes/uploadRouter'); // Router dành riêng cho các API upload file
 const diaryEntriesRoutes = require('./routes/diaryEntriesRouter'); // Router cho nhật ký (nếu bạn cần)
+const adminRoutes = require('./routes/adminRoutes');
+
 
 
 // Khởi tạo ứng dụng Express
@@ -81,6 +83,8 @@ app.use('/api/reminders', reminderRoutes); // Các route liên quan đến nhắ
 app.use('/api/posts', postRoutes); // Các route liên quan đến bài viết
 app.use('/api', uploadRoutes); // Router upload, ví dụ: /api/upload-single, /api/upload-multiple
 app.use('/api/diaryentries', diaryEntriesRoutes); // ✅ Bỏ comment nếu bạn cần sử dụng router nhật ký
+app.use('/admin', adminRoutes);
+
 
 // app.use('/api/auth', authRouter); // Bỏ comment nếu bạn có một router xác thực riêng và muốn gắn nó vào /api/auth
 
@@ -136,7 +140,7 @@ app.use(function (err, req, res, next) {
 });
 
 // --- Khởi động Server ---
-const PORT = 6000;
+const PORT = 3000;
 // Lắng nghe trên tất cả các interface mạng (0.0.0.0) để có thể truy cập từ bên ngoài localhost
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f1f3f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #343a40;
+            padding: 15px 20px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            margin: 0;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+
+        .container {
+            padding: 30px 50px;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .admin-info img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            border: 2px solid #007bff;
+        }
+
+        .admin-info h3 {
+            margin: 0;
+            font-size: 22px;
+            color: #333;
+        }
+
+        .admin-info p {
+            margin: 4px 0 0;
+            color: #666;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s ease;
+            /* Thêm pointer để người dùng biết có thể click */
+            cursor: pointer; 
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .card h4 {
+            margin: 10px 0;
+            color: #007bff;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: #555;
+        }
+        /* Style cho các liên kết trong card */
+        .card a {
+            text-decoration: none; /* Bỏ gạch chân */
+            color: inherit; /* Kế thừa màu chữ từ card */
+            display: block; /* Làm cho toàn bộ card có thể click */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2>Trang Quản Trị FMCarer</h2>
+        <form action="/admin/logout" method="POST" style="margin: 0;">
+            <button type="submit" class="logout-btn">Đăng xuất</button>
+        </form>
+    </div>
+
+    <div class="container">
+
+        <% if (admin) { %>
+            <div class="admin-info">
+<img src="https://media.vov.vn/sites/default/files/styles/large/public/2024-12/tin_tac_thuc_hien_vu_tan_cong_vao_cong_ty_luat_hwl_ebsword_va_thang_4_2023_va_danh_cap_nhieu_thong_tin_nhay_cam_20241205101532.png.jpg" alt="Avatar" />
+                <div>
+                    <h3><%= admin.fullname || admin.username %></h3> <p>Vai trò: <%= admin.role || 'Admin' %></p>
+                </div>
+            </div>
+        <% } else { %>
+            <h1>Không tìm thấy thông tin admin</h1>
+        <% } %>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <a href="/admin/users"> <h4>👥 Quản lý người dùng</h4>
+                    <p>Xem và quản lý danh sách phụ huynh</p>
+                </a>
+            </div>
+
+            <div class="card">
+                <h4>📝 Quản lý bài viết</h4>
+                <p>Duyệt, chỉnh sửa hoặc xoá bài viết</p>
+            </div>
+
+            <div class="card">
+                <h4>📅 Quản lý nhắc nhở</h4>
+                <p>Thống kê các nhắc nhở quan trọng</p>
+            </div>
+
+            <div class="card">
+                <h4>📊 Thống kê hệ thống</h4>
+                <p>Xem tổng số người dùng, bài viết, trẻ em</p>
+            </div>
+
+            <div class="card">
+                <h4>⚙️ Cài đặt hệ thống</h4>
+                <p>Cập nhật cấu hình chung, vai trò</p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
