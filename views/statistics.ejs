@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống Kê Hệ Thống - Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f1f3f5;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #343a40;
+            padding: 15px 20px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h2 {
+            margin: 0;
+        }
+        .back-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+        .container {
+            padding: 30px 50px;
+        }
+        /* Centering for the main heading */
+        .container h1 {
+            text-align: center;
+            margin-bottom: 30px; /* Add some space below the main title */
+            color: #333;
+        }
+        .stats-section {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .stats-section h3 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            /* Centering for section headings */
+            text-align: center;
+        }
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .stats-item:last-child {
+            border-bottom: none;
+        }
+        .stats-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .stats-value {
+            color: #007bff;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2>Thống Kê Hệ Thống</h2>
+        <a href="/admin/dashboard" class="back-btn">Quay lại Dashboard</a>
+    </div>
+
+    <div class="container">
+        <h1>Tổng quan thống kê</h1>
+
+        <div class="stats-section">
+            <h3>Tổng số người dùng</h3>
+            <div class="stats-item">
+                <span class="stats-label">Phụ huynh chính:</span>
+                <span class="stats-value"><%= stats.users.mainParents %></span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">Người dùng phụ:</span>
+                <span class="stats-value"><%= stats.users.subUsers %></span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">Tổng cộng:</span>
+                <span class="stats-value"><%= stats.users.total %></span>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h3>Tổng số bài viết</h3>
+            <div class="stats-item">
+                <span class="stats-label">Bài viết đã duyệt:</span>
+                <span class="stats-value"><%= stats.posts.approved %></span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">Bài viết chờ duyệt:</span>
+                <span class="stats-value"><%= stats.posts.pending %></span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">Tổng cộng:</span>
+                <span class="stats-value"><%= stats.posts.total %></span>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h3>Tổng số nhắc nhở</h3>
+            <div class="stats-item">
+                <span class="stats-label">Nhắc nhở đã hoàn thành:</span>
+                <span class="stats-value"><%= stats.reminders.completed %></span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">Nhắc nhở sắp tới:</span>
+                <span class="stats-value"><%= stats.reminders.upcoming %></span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">Tổng cộng:</span>
+                <span class="stats-value"><%= stats.reminders.total %></span>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h3>Tổng số trẻ em</h3>
+            <div class="stats-item">
+                <span class="stats-label">Trẻ em được quản lý:</span>
+                <span class="stats-value"><%= stats.children.managed %></span>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -7,6 +7,10 @@ const path = require('path');               // Tiện ích làm việc với đ�
 const cookieParser = require('cookie-parser'); // Middleware để parse cookies
 const logger = require('morgan');           // Middleware để ghi log các request HTTP
 
+// Thêm hai module này vào đây
+const session = require('express-session'); // Thêm middleware session
+const flash = require('connect-flash');     // Thêm middleware flash
+
 // Kết nối MongoDB
 const connectDB = require('./database/db'); // Import hàm kết nối cơ sở dữ liệu
 
@@ -41,7 +45,7 @@ const postRoutes = require('./routes/postRoutes'); // Router cho các bài viế
 const uploadRoutes = require('./routes/uploadRouter'); // Router dành riêng cho các API upload file
 const diaryEntriesRoutes = require('./routes/diaryEntriesRouter'); // Router cho nhật ký (nếu bạn cần)
 const adminRoutes = require('./routes/adminRoutes');
-
+const paymenRouter = require('./routes/paymentRoutes'); // Router cho các chức năng thanh toán
 
 
 // Khởi tạo ứng dụng Express
@@ -62,6 +66,27 @@ app.use(express.json()); // Middleware để parse JSON request bodies (cho API)
 app.use(express.urlencoded({ extended: false })); // Middleware để parse URL-encoded request bodies (cho form HTML)
 app.use(cookieParser()); // Middleware để parse cookies từ request header
 
+// --- Cấu hình SESSION và FLASH MESSAGES (THÊM MỚI Ở ĐÂY) ---
+// Phải đặt SAU cookieParser và TRƯỚC các routes sử dụng req.flash
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your_super_secret_key_please_change_this_in_production', // RẤT QUAN TRỌNG: Thay đổi khóa bí mật này trong môi trường production!
+    resave: false, // Ngăn lưu lại session nếu không có thay đổi
+    saveUninitialized: true, // Lưu session mới nhưng chưa được khởi tạo
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // true nếu bạn dùng HTTPS trong production
+        maxAge: 24 * 60 * 60 * 1000 // 24 giờ
+    }
+}));
+app.use(flash()); // Kích hoạt connect-flash
+
+// Middleware để đưa flash messages vào res.locals để dễ dàng truy cập trong EJS templates
+app.use((req, res, next) => {
+    res.locals.messages = req.flash(); // Lấy tất cả các tin nhắn flash
+    next();
+});
+
+// --- Tiếp tục Cấu hình Middleware và Gắn Routes ---
+
 // Cấu hình để phục vụ các file tĩnh từ thư mục 'public'
 // Ví dụ: CSS, JavaScript frontend, hình ảnh tĩnh
 app.use(express.static(path.join(__dirname, 'public')));
@@ -76,14 +101,15 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Đảm bảo tiền tố ở đây khớp với URL mà client gọi
 // Ví dụ: nếu router.post('/send-otp', ...) thì client gọi POST /api/users/send-otp
 app.use('/api/users', usersRouter); // Các route chung liên quan đến người dùng (đăng ký, đăng nhập...)
-app.use('/api/users', otpRoute); 
+app.use('/api/users', otpRoute);
 app.use('/', indexRouter); // Router cho trang chủ hoặc các route không có tiền tố API
 app.use('/api/children', childRoutes); // Các route liên quan đến trẻ em
 app.use('/api/reminders', reminderRoutes); // Các route liên quan đến nhắc nhở
 app.use('/api/posts', postRoutes); // Các route liên quan đến bài viết
 app.use('/api', uploadRoutes); // Router upload, ví dụ: /api/upload-single, /api/upload-multiple
 app.use('/api/diaryentries', diaryEntriesRoutes); // ✅ Bỏ comment nếu bạn cần sử dụng router nhật ký
-app.use('/admin', adminRoutes);
+app.use('/admin', adminRoutes); // ✅ RẤT QUAN TRỌNG: Đảm bảo AdminRouter được gắn vào đây!
+app.use('/api/payments', paymenRouter); // Router thanh toán, ví dụ: /api/payments/topup/initiate
 
 
 // app.use('/api/auth', authRouter); // Bỏ comment nếu bạn có một router xác thực riêng và muốn gắn nó vào /api/auth
