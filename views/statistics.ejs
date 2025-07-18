@@ -2,79 +2,138 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thống Kê Hệ Thống - Admin</title>
     <style>
+        /* Define your color palette variables */
+        :root {
+            --mau-nen: #EEE0FF;
+            --white: #FFFFFF;
+            --black: #000000;
+            --gray: #BDBDBD;
+            --red: #E53935;
+            --mau-button: #722DD3;
+            --blue: #1E88E5;
+            --default-text-color: #000000;
+            --light-hint: #777777;
+            --green-completed: #4CAF50;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f1f3f5;
+            background-color: var(--mau-nen); /* Nền tổng thể: Tím pastel cực nhạt */
             margin: 0;
             padding: 0;
+            color: var(--default-text-color);
         }
+
         .navbar {
-            background-color: #343a40;
+            background-color: var(--mau-button); /* Màu chính cho App Bar: Tím đậm */
             padding: 15px 20px;
-            color: #fff;
+            color: var(--white);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
         .navbar h2 {
             margin: 0;
+            color: var(--white);
         }
+
         .back-btn {
-            background-color: #007bff;
-            color: white;
+            background-color: var(--blue); /* Nút quay lại: Xanh dương sáng */
+            color: var(--white);
             padding: 8px 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
+
         .back-btn:hover {
-            background-color: #0056b3;
+            background-color: #1565C0; /* Xanh đậm hơn khi hover */
+            transform: translateY(-1px);
         }
+
         .container {
             padding: 30px 50px;
+            max-width: 900px; /* Giới hạn chiều rộng để nội dung không bị quá rộng */
+            margin: 0 auto; /* Căn giữa container */
         }
-        /* Centering for the main heading */
+
         .container h1 {
             text-align: center;
-            margin-bottom: 30px; /* Add some space below the main title */
-            color: #333;
+            margin-bottom: 30px;
+            color: var(--mau-button); /* Tiêu đề chính: Tím đậm */
+            font-size: 28px;
+            font-weight: bold;
         }
+
         .stats-section {
-            background-color: #ffffff;
+            background-color: var(--white); /* Nền phần thống kê: Trắng */
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            border-radius: 12px; /* Bo góc lớn hơn */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Bóng đổ mềm mại */
+            margin-bottom: 25px; /* Khoảng cách giữa các phần */
+            border: 1px solid var(--gray); /* Viền nhẹ */
         }
+
         .stats-section h3 {
-            color: #333;
+            color: var(--mau-button); /* Tiêu đề phần: Tím đậm */
             margin-top: 0;
             margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--gray); /* Đường kẻ dưới: Xám nhạt */
             padding-bottom: 10px;
-            /* Centering for section headings */
             text-align: center;
+            font-size: 22px;
+            font-weight: bold;
         }
+
         .stats-item {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px dashed #eee;
+            align-items: center; /* Căn giữa theo chiều dọc */
+            padding: 12px 0; /* Tăng padding */
+            border-bottom: 1px dashed #eee; /* Đường kẻ đứt nét nhẹ */
         }
+
         .stats-item:last-child {
             border-bottom: none;
         }
+
         .stats-label {
             font-weight: bold;
-            color: #555;
+            color: var(--default-text-color); /* Nhãn: Đen mặc định */
+            font-size: 16px;
         }
+
         .stats-value {
-            color: #007bff;
-            font-size: 18px;
+            color: var(--blue); /* Giá trị: Xanh dương sáng */
+            font-size: 20px; /* Kích thước lớn hơn cho giá trị */
+            font-weight: bold;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .stats-section {
+                padding: 20px;
+            }
+            .stats-section h3 {
+                font-size: 20px;
+            }
+            .stats-label {
+                font-size: 15px;
+            }
+            .stats-value {
+                font-size: 18px;
+            }
         }
     </style>
 </head>

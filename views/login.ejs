@@ -2,67 +2,119 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Đăng nhập Admin</title>
   <style>
+    /* Define your color palette variables */
+    :root {
+        --mau-nen: #EEE0FF;
+        --white: #FFFFFF;
+        --black: #000000;
+        --gray: #BDBDBD;
+        --red: #E53935;
+        --mau-button: #722DD3;
+        --blue: #1E88E5;
+        --default-text-color: #000000;
+        --light-hint: #777777;
+        --mau-edittext: #9056E2;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--mau-nen); /* Nền tổng thể: Tím pastel cực nhạt */
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
+      color: var(--default-text-color); /* Màu chữ mặc định */
     }
 
     .login-container {
-      background: white;
+      background-color: var(--white); /* Nền container: Trắng */
       padding: 30px 40px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 12px; /* Bo góc lớn hơn */
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Bóng đổ mềm mại và rõ hơn */
       width: 100%;
       max-width: 400px;
+      border: 1px solid var(--gray); /* Viền nhẹ */
     }
 
     h1 {
       text-align: center;
       margin-bottom: 24px;
-      color: #333;
+      color: var(--mau-button); /* Tiêu đề: Tím đậm */
+      font-size: 28px;
+      font-weight: bold;
     }
 
     label {
       font-weight: bold;
-      margin-top: 12px;
+      margin-top: 16px; /* Tăng khoảng cách trên */
+      margin-bottom: 6px;
       display: block;
+      color: var(--mau-button); /* Nhãn: Tím đậm */
     }
 
     input[type="email"],
     input[type="password"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      width: calc(100% - 22px); /* Trừ padding và border */
+      padding: 12px; /* Tăng padding */
+      border: 1px solid var(--gray); /* Viền mặc định: Xám nhạt */
+      border-radius: 8px; /* Bo góc nhẹ nhàng */
+      font-size: 16px;
+      color: var(--default-text-color); /* Chữ nhập liệu: Đen mặc định */
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: var(--mau-edittext); /* Viền khi focus: Tím đậm vừa */
+      box-shadow: 0 0 0 3px rgba(144, 86, 226, 0.2); /* Bóng đổ nhẹ khi focus */
     }
 
     button {
-      margin-top: 20px;
+      margin-top: 30px; /* Tăng khoảng cách trên */
       width: 100%;
-      padding: 10px;
-      background: #007bff;
-      color: white;
+      padding: 14px; /* Tăng padding */
+      background-color: var(--mau-button); /* Nền nút: Tím đậm */
+      color: var(--white); /* Chữ nút: Trắng */
       font-weight: bold;
       border: none;
-      border-radius: 4px;
+      border-radius: 24px; /* Bo góc lớn hơn cho nút */
       cursor: pointer;
+      font-size: 18px;
+      transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 10px rgba(114, 45, 211, 0.3); /* Bóng đổ cho nút */
     }
 
     button:hover {
-      background: #0056b3;
+      background-color: #5d24b0; /* Tím đậm hơn khi hover */
+      transform: translateY(-2px); /* Hiệu ứng nhấc nhẹ */
+      box-shadow: 0 6px 15px rgba(114, 45, 211, 0.4);
     }
 
     .error {
-      color: red;
-      margin-top: 12px;
+      color: var(--red); /* Màu lỗi: Đỏ */
+      margin-top: 16px;
       text-align: center;
+      font-weight: bold;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+        .login-container {
+            padding: 20px 25px;
+            margin: 0 20px; /* Thêm margin ngang trên mobile */
+        }
+        h1 {
+            font-size: 24px;
+        }
+        button {
+            padding: 12px;
+            font-size: 16px;
+        }
     }
   </style>
 </head>

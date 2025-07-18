@@ -2,87 +2,121 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= pageTitle %></title>
     <style>
+        /* Define your color palette variables */
+        :root {
+            --mau-nen: #EEE0FF;
+            --white: #FFFFFF;
+            --black: #000000;
+            --gray: #BDBDBD;
+            --red: #E53935;
+            --mau-button: #722DD3;
+            --blue: #1E88E5;
+            --default-text-color: #000000;
+            --light-hint: #777777;
+            --green-completed: #4CAF50;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f1f3f5;
+            background-color: var(--mau-nen); /* Nền tổng thể: Tím pastel cực nhạt */
             margin: 0;
             padding: 0;
+            color: var(--default-text-color);
         }
+
         .navbar {
-            background-color: #343a40;
+            background-color: var(--mau-button); /* Màu chính cho App Bar: Tím đậm */
             padding: 15px 20px;
-            color: #fff;
+            color: var(--white);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
         .navbar h2 {
             margin: 0;
+            color: var(--white);
         }
+
         .back-btn {
-            background-color: #007bff;
-            color: white;
+            background-color: var(--blue); /* Nút quay lại: Xanh dương sáng */
+            color: var(--white);
             padding: 8px 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
+
         .back-btn:hover {
-            background-color: #0056b3;
+            background-color: #1565C0; /* Xanh đậm hơn khi hover */
+            transform: translateY(-1px);
         }
+
         .container {
             padding: 30px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
+
         h1 {
             text-align: center;
             margin-bottom: 30px;
-            color: #333;
+            color: var(--mau-button); /* Tiêu đề trang: Tím đậm */
+            font-size: 28px;
+            font-weight: bold;
         }
+
         .flash-messages {
             margin-bottom: 20px;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 8px;
+            font-weight: bold;
         }
         .flash-messages.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: #e6ffed; /* Light green */
+            color: var(--green-completed); /* Dark green */
+            border: 1px solid var(--green-completed);
         }
         .flash-messages.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: #ffe6e6; /* Light red */
+            color: var(--red); /* Dark red */
+            border: 1px solid var(--red);
         }
         .flash-messages.info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+            background-color: #e6f7ff; /* Light blue */
+            color: var(--blue); /* Dark blue */
+            border: 1px solid var(--blue);
         }
+
         .posts-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: #ffffff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-radius: 10px;
+            background-color: var(--white); /* Nền bảng: Trắng */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Bóng đổ mềm mại */
+            border-radius: 12px; /* Bo góc lớn hơn */
             overflow: hidden;
         }
         .posts-table th, .posts-table td {
             padding: 12px 15px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--gray); /* Viền dưới: Xám nhạt */
+            color: var(--default-text-color);
         }
         .posts-table th {
-            background-color: #e9ecef;
-            color: #495057;
+            background-color: #f0f2f5; /* Nền header bảng: Xám nhẹ */
+            color: var(--mau-button); /* Chữ header: Tím đậm */
             font-weight: bold;
             text-transform: uppercase;
         }
         .posts-table tbody tr:hover {
-            background-color: #f8f9fa;
+            background-color: #f8f9fa; /* Nền hàng khi hover: Rất nhạt */
         }
         .posts-table td .status-badge {
             padding: 5px 10px;
@@ -92,58 +126,131 @@
             color: white;
             white-space: nowrap;
         }
-        .status-pending { background-color: #ffc107; color: #333; }
-        .status-active { background-color: #28a745; }
-        .status-rejected { background-color: #dc3545; }
+        .status-pending { background-color: #ffc107; color: #333; } /* Vàng cho chờ duyệt */
+        .status-active { background-color: var(--green-completed); } /* Xanh lá cho đã duyệt */
+        .status-rejected { background-color: var(--red); } /* Đỏ cho từ chối */
 
         .post-actions form {
             display: inline-block;
             margin-right: 5px;
+            vertical-align: middle; /* Căn chỉnh các form trên cùng một hàng */
         }
         .post-actions button {
             padding: 8px 12px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px; /* Bo góc nhẹ nhàng */
             cursor: pointer;
             font-weight: bold;
-            color: white;
+            color: var(--white);
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
         .post-actions .btn-approve {
-            background-color: #28a745;
+            background-color: var(--green-completed); /* Nút duyệt: Xanh lá */
         }
         .post-actions .btn-reject {
-            background-color: #dc3545;
+            background-color: var(--red); /* Nút từ chối: Đỏ */
         }
         .post-actions .btn-delete {
-            background-color: #6c757d;
+            background-color: var(--gray); /* Nút xóa: Xám */
         }
         .post-actions button:hover {
             opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .post-actions input[type="text"] {
+            padding: 8px;
+            border: 1px solid var(--gray);
+            border-radius: 6px;
+            font-size: 14px;
+            color: var(--default-text-color);
         }
         .no-posts {
             text-align: center;
-            color: #6c757d;
+            color: var(--light-hint); /* Màu chữ: Xám tối */
             padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
+            background-color: var(--white);
+            border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            font-size: 1.1em;
         }
         .bulk-actions {
             margin-bottom: 15px;
-            text-align: right; /* Align to the right for better UI */
+            text-align: right;
         }
         .bulk-actions button {
-            padding: 10px 15px;
-            background-color: #dc3545; /* Red for delete */
-            color: white;
+            padding: 10px 18px;
+            background-color: var(--red); /* Nút xóa hàng loạt: Đỏ */
+            color: var(--white);
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1em;
             font-weight: bold;
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
         .bulk-actions button:hover {
             background-color: #c82333;
+            transform: translateY(-1px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .posts-table, .posts-table tbody, .posts-table tr, .posts-table td, .posts-table th {
+                display: block; /* Stack table elements */
+            }
+            .posts-table thead {
+                display: none; /* Hide table header on small screens */
+            }
+            .posts-table tr {
+                margin-bottom: 15px;
+                border: 1px solid var(--gray);
+                border-radius: 8px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            }
+            .posts-table td {
+                border-bottom: 1px solid #eee;
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            .posts-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                width: calc(50% - 30px);
+                text-align: left;
+                font-weight: bold;
+                color: var(--mau-button);
+            }
+            .posts-table td:last-child {
+                border-bottom: 0;
+            }
+            .post-actions {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                gap: 5px;
+                margin-top: 10px;
+            }
+            .post-actions form {
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+            .post-actions button {
+                width: auto;
+                flex-grow: 1;
+            }
+            .post-actions input[type="text"] {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+            .bulk-actions {
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -181,7 +288,8 @@
         <table class="posts-table">
             <thead>
                 <tr>
-                    <th><input type="checkbox" id="selectAllPosts"></th> <th>Nội dung bài viết</th>
+                    <th><input type="checkbox" id="selectAllPosts"></th>
+                    <th>Nội dung bài viết</th>
                     <th>Tác giả</th>
                     <th>Ngày tạo</th>
                     <th>Trạng thái</th>
@@ -191,9 +299,11 @@
             <tbody>
                 <% posts.forEach(post => { %>
                 <tr>
-                    <td><input type="checkbox" class="post-checkbox" name="postIds" value="<%= post._id %>"></td> <td><%= post.content ? post.content.substring(0, 100) + (post.content.length > 100 ? '...' : '') : 'Không có nội dung' %></td>
-                    <td><%= post.user ? post.user.fullname : (post.fullname || 'N/A') %></td> <td><%= new Date(post.created_at).toLocaleDateString('vi-VN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></td>
-                    <td>
+                    <td data-label="Chọn"><input type="checkbox" class="post-checkbox" name="postIds" value="<%= post._id %>"></td>
+                    <td data-label="Nội dung bài viết"><%= post.content ? post.content.substring(0, 100) + (post.content.length > 100 ? '...' : '') : 'Không có nội dung' %></td>
+                    <td data-label="Tác giả"><%= post.user ? post.user.fullname : (post.fullname || 'N/A') %></td>
+                    <td data-label="Ngày tạo"><%= new Date(post.created_at).toLocaleDateString('vi-VN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></td>
+                    <td data-label="Trạng thái">
                         <span class="status-badge status-<%= post.status %>">
                             <% if (post.status === 'pending') { %>
                                 Đang chờ
@@ -206,7 +316,7 @@
                             <% } %>
                         </span>
                     </td>
-                    <td class="post-actions">
+                    <td data-label="Hành động" class="post-actions">
                         <% if (post.status === 'pending' || post.status === 'rejected') { %>
                             <form action="/admin/posts/<%= post._id %>/approve" method="POST">
                                 <button type="submit" class="btn-approve">Duyệt</button>
@@ -248,8 +358,7 @@
             const bulkDeleteForm = document.getElementById('bulkDeleteForm');
             const postIdsToDeleteInput = document.getElementById('postIdsToDeleteInput');
 
-            // Handle "Select All" checkbox
-            if (selectAllCheckbox) { // Check if element exists
+            if (selectAllCheckbox) {
                 selectAllCheckbox.addEventListener('change', function() {
                     postCheckboxes.forEach(checkbox => {
                         checkbox.checked = selectAllCheckbox.checked;
@@ -257,11 +366,10 @@
                 });
             }
 
-            // Handle individual post checkboxes (if all are checked, check "Select All"; if any is unchecked, uncheck "Select All")
             postCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     if (!this.checked) {
-                        if (selectAllCheckbox) selectAllCheckbox.checked = false; // Only if selectAllCheckbox exists
+                        if (selectAllCheckbox) selectAllCheckbox.checked = false;
                     } else {
                         const allChecked = Array.from(postCheckboxes).every(cb => cb.checked);
                         if (selectAllCheckbox) selectAllCheckbox.checked = allChecked;
@@ -269,8 +377,7 @@
                 });
             });
 
-            // Handle "Delete Selected" button click
-            if (deleteSelectedBtn) { // Check if element exists
+            if (deleteSelectedBtn) {
                 deleteSelectedBtn.addEventListener('click', function() {
                     const selectedIds = [];
                     postCheckboxes.forEach(checkbox => {
@@ -285,7 +392,7 @@
                     }
 
                     if (confirm('Bạn có chắc chắn muốn XÓA VĨNH VIỄN các bài viết đã chọn? Hành động này không thể hoàn tác.')) {
-                        postIdsToDeleteInput.value = JSON.stringify(selectedIds); // Gửi mảng ID dưới dạng JSON string
+                        postIdsToDeleteInput.value = JSON.stringify(selectedIds);
                         bulkDeleteForm.submit();
                     }
                 });

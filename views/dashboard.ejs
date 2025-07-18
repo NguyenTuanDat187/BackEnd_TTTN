@@ -2,55 +2,77 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin</title>
     <style>
+        /* Define your color palette variables */
+        :root {
+            --mau-nen: #EEE0FF;
+            --white: #FFFFFF;
+            --black: #000000;
+            --gray: #BDBDBD;
+            --red: #E53935;
+            --mau-button: #722DD3;
+            --blue: #1E88E5;
+            --default-text-color: #000000;
+            --light-hint: #777777;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f1f3f5;
+            background-color: var(--mau-nen); /* Nền tổng thể: Tím pastel cực nhạt */
             margin: 0;
             padding: 0;
+            color: var(--default-text-color); /* Màu chữ mặc định */
         }
 
         .navbar {
-            background-color: #343a40;
+            background-color: var(--mau-button); /* Màu chính cho App Bar: Tím đậm */
             padding: 15px 20px;
-            color: #fff;
+            color: var(--white); /* Chữ trên navbar: Trắng */
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .navbar h2 {
             margin: 0;
+            color: var(--white); /* Đảm bảo màu tiêu đề trên navbar là trắng */
         }
 
         .logout-btn {
-            background-color: #dc3545;
-            color: white;
+            background-color: var(--red); /* Nút đăng xuất: Đỏ */
+            color: var(--white); /* Chữ nút đăng xuất: Trắng */
             padding: 8px 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px; /* Bo góc nhẹ nhàng */
             text-decoration: none;
             font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
         .logout-btn:hover {
-            background-color: #c82333;
+            background-color: #c82333; /* Đỏ đậm hơn khi hover */
+            transform: translateY(-1px);
         }
 
         .container {
             padding: 30px 50px;
+            max-width: 1200px;
+            margin: 0 auto; /* Căn giữa container */
         }
 
         .admin-info {
             display: flex;
             align-items: center;
-            background-color: #ffffff;
+            background-color: var(--white); /* Nền thông tin admin: Trắng */
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 12px; /* Bo góc lớn hơn */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Bóng đổ mềm mại hơn */
             margin-bottom: 30px;
+            border: 1px solid var(--gray); /* Viền nhẹ */
         }
 
         .admin-info img {
@@ -59,18 +81,20 @@
             border-radius: 50%;
             object-fit: cover;
             margin-right: 20px;
-            border: 2px solid #007bff;
+            border: 3px solid var(--blue); /* Viền avatar: Xanh dương sáng */
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3); /* Bóng đổ cho avatar */
         }
 
         .admin-info h3 {
             margin: 0;
             font-size: 22px;
-            color: #333;
+            color: var(--mau-button); /* Tên admin: Tím đậm */
         }
 
         .admin-info p {
             margin: 4px 0 0;
-            color: #666;
+            color: var(--light-hint); /* Vai trò: Xám tối */
+            font-size: 15px;
         }
 
         .dashboard-grid {
@@ -80,64 +104,87 @@
         }
 
         .card {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            background-color: var(--white); /* Nền card: Trắng */
+            padding: 25px; /* Tăng padding */
+            border-radius: 12px; /* Bo góc lớn hơn */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Bóng đổ mềm mại */
             text-align: center;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
-            position: relative; /* Thêm position relative để đặt badge */
+            position: relative;
+            border: 1px solid var(--gray); /* Viền nhẹ */
         }
 
         .card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-6px); /* Dịch chuyển nhiều hơn khi hover */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Bóng đổ rõ hơn khi hover */
         }
 
         .card h4 {
             margin: 10px 0;
-            color: #007bff;
-            display: flex; /* Dùng flexbox để căn chỉnh icon và badge */
+            color: var(--mau-button); /* Tiêu đề card: Tím đậm */
+            font-size: 18px;
+            display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px; /* Khoảng cách giữa chữ và badge */
+            gap: 8px;
         }
 
         .card p {
             font-size: 14px;
-            color: #555;
+            color: var(--default-text-color); /* Mô tả card: Đen mặc định */
+            line-height: 1.5;
         }
-        /* Style cho các liên kết trong card */
+
         .card a {
             text-decoration: none;
             color: inherit;
             display: block;
         }
 
-        /* NEW: Style cho badge thông báo */
         .notification-badge {
-            background-color: #ff4d4f; /* Màu đỏ */
-            color: white;
+            background-color: var(--red); /* Màu đỏ cho badge */
+            color: var(--white); /* Chữ badge: Trắng */
             font-size: 12px;
             font-weight: bold;
             border-radius: 50%;
             padding: 4px 8px;
-            min-width: 20px; /* Đảm bảo đủ rộng cho 1 hoặc 2 chữ số */
+            min-width: 20px;
             height: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: absolute; /* Đặt badge dựa trên card */
-            top: 15px; /* Điều chỉnh vị trí */
-            right: 15px; /* Điều chỉnh vị trí */
-            transform: translate(50%, -50%); /* Dịch chuyển để nằm ở góc */
-            z-index: 10; /* Đảm bảo nằm trên các phần tử khác */
-            opacity: 0; /* Mặc định ẩn */
-            transition: opacity 0.3s ease-in-out;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            transform: translate(50%, -50%);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .notification-badge.show {
-            opacity: 1; /* Hiển thị khi có số > 0 */
+            opacity: 1;
+            transform: translate(50%, -50%) scale(1.1); /* Nhấn nhá khi hiển thị */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .admin-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            .admin-info img {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr; /* Stack cards on small screens */
+            }
         }
     </style>
 </head>
@@ -154,7 +201,7 @@
 
         <% if (admin) { %>
             <div class="admin-info">
-                <img src="<%= admin.image || 'https://media.vov.vn/sites/default/files/styles/large/public/2024-12/tin_tac_thuc_hien_vu_tan_cong_vao_cong_ty_luat_hwl_ebsword_va_thang_4_2023_va_danh_cap_nhieu_thong_tin_nhay_cam_20241205101532.png.jpg' %>" alt="Avatar" />
+                <img src="<%= admin.image || 'https://placehold.co/80x80/722DD3/FFFFFF?text=Admin' %>" alt="Avatar" />
                 <div>
                     <h3><%= admin.fullname || admin.username %></h3>
                     <p>Vai trò: <%= admin.role || 'Admin' %></p>
@@ -180,8 +227,10 @@
             </div>
 
             <div class="card">
-                <h4>📅 Quản lý nhắc nhở <span id="reminder-notification" class="notification-badge"></span></h4>
-                <p>Thống kê các nhắc nhở quan trọng</p>
+                <a href="/admin/reminders"> <!-- Thêm href cho card này -->
+                    <h4>📅 Quản lý nhắc nhở <span id="reminder-notification" class="notification-badge"></span></h4>
+                    <p>Thống kê các nhắc nhở quan trọng</p>
+                </a>
             </div>
 
             <div class="card">
@@ -192,8 +241,10 @@
             </div>
 
             <div class="card">
-                <h4>⚙️ Cài đặt hệ thống</h4>
-                <p>Cập nhật cấu hình chung, vai trò</p>
+                <a href="/admin/settings"> <!-- Thêm href cho card này -->
+                    <h4>⚙️ Cài đặt hệ thống</h4>
+                    <p>Cập nhật cấu hình chung, vai trò</p>
+                </a>
             </div>
         </div>
 

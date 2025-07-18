@@ -50,5 +50,6 @@ router.post('/posts/:postId/delete', requireAdmin, adminController.deletePost);
 // ✨ NEW: Route for bulk delete posts (POST /admin/posts/bulk-delete)
 router.post('/posts/bulk-delete', requireAdmin, adminController.bulkDeletePosts);
 
+router.get('/users/:id/details', requireAdmin, adminController.getUserDetails);
 
 module.exports = router;

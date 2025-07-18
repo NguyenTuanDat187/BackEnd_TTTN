@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title><%= pageTitle %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <style>
+        /* --- CSS Variables --- */
+        :root {
+            --primary-color: #6A1B9A; /* Darker Purple for main elements */
+            --primary-light: #9C27B0; /* Lighter Purple for accents */
+            --secondary-color: #039BE5; /* Blue for action buttons */
+            --background-light: #F8F9FA; /* Very light gray background */
+            --background-paper: #FFFFFF; /* White for card backgrounds */
+            --text-dark: #212121; /* Dark text for headings */
+            --text-medium: #424242; /* Medium text for body */
+            --text-light: #757575; /* Light text for hints/descriptions */
+            --border-light: #E0E0E0; /* Light gray for borders */
+            --shadow-light: rgba(0, 0, 0, 0.08); /* Soft shadow */
+            --shadow-medium: rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
+            --alert-red: #D32F2F; /* Red for error/suspended state */
+            --success-green: #388E3C; /* Green for active/success state */
+            --spacing-unit: 1rem; /* Base spacing unit (16px) */
+        }
+
+        /* --- Global Styles --- */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-light);
+            margin: 0;
+            padding: 0;
+            color: var(--text-medium);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            background-color: var(--primary-color);
+            padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 2);
+            color: var(--background-paper);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px var(--shadow-light);
+        }
+
+        .navbar__title {
+            margin: 0;
+            font-size: calc(var(--spacing-unit) * 1.625); /* ~26px */
+            font-weight: 500;
+        }
+
+        .navbar__button {
+            background-color: var(--secondary-color);
+            color: var(--background-paper);
+            border: none;
+            padding: calc(var(--spacing-unit) * 0.625) calc(var(--spacing-unit) * 1.25); /* ~10px 20px */
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 400;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar__button:hover {
+            background-color: #0288D1; /* Darker blue */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px var(--shadow-medium);
+        }
+
+        /* --- Main Content Container --- */
+        .container {
+            max-width: 1000px;
+            margin: calc(var(--spacing-unit) * 2) auto;
+            padding: 0 calc(var(--spacing-unit) * 1.25);
+        }
+
+        /* --- Section Cards --- */
+        .section-card {
+            background-color: var(--background-paper);
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2); /* ~24px 32px */
+            margin-bottom: calc(var(--spacing-unit) * 1.5);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px var(--shadow-light);
+            border: 1px solid var(--border-light);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--shadow-medium);
+        }
+
+        .section-card__header {
+            color: var(--primary-light);
+            margin-top: 0;
+            font-size: calc(var(--spacing-unit) * 1.5); /* ~24px */
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: calc(var(--spacing-unit) * 0.625); /* ~10px */
+            margin-bottom: calc(var(--spacing-unit) * 1.25); /* ~20px */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- List Items --- */
+        .list-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px; /* Space between icon and text */
+            padding-bottom: calc(var(--spacing-unit) * 0.5); /* ~8px */
+            margin-bottom: calc(var(--spacing-unit) * 0.75); /* ~12px */
+            border-bottom: 1px dashed var(--border-light);
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .list-item__icon {
+            color: var(--primary-light);
+            font-size: calc(var(--spacing-unit) * 1); /* ~16px */
+            flex-shrink: 0; /* Prevent icon from shrinking */
+            min-width: 20px;
+            text-align: center;
+            padding-top: 2px; /* Align icon better with text */
+        }
+
+        .list-item__text strong {
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .list-item__text small {
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+
+        /* --- Empty State Message --- */
+        .empty-message {
+            color: var(--text-light);
+            font-style: italic;
+            text-align: center;
+            padding: calc(var(--spacing-unit) * 1);
+            background-color: var(--background-light);
+            border-radius: 8px;
+            margin-top: calc(var(--spacing-unit) * 1);
+        }
+
+        /* --- Summary Grid --- */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: calc(var(--spacing-unit) * 1.25); /* ~20px */
+            margin-bottom: calc(var(--spacing-unit) * 2); /* ~32px */
+        }
+
+        .summary-grid__item {
+            background-color: var(--primary-light);
+            color: var(--background-paper);
+            padding: calc(var(--spacing-unit) * 1.125) calc(var(--spacing-unit) * 1.25); /* ~18px 20px */
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: calc(var(--spacing-unit) * 1); /* ~16px */
+            text-align: center;
+            box-shadow: 0 3px 10px var(--shadow-light);
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .summary-grid__item:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px var(--shadow-medium);
+        }
+        
+        /* Specific status colors */
+        .status--active { color: var(--success-green); }
+        .status--suspended { color: var(--alert-red); }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 10px;
+                padding: calc(var(--spacing-unit) * 1);
+            }
+
+            .navbar__title {
+                font-size: calc(var(--spacing-unit) * 1.375); /* ~22px */
+            }
+
+            .navbar__button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .container {
+                margin: calc(var(--spacing-unit) * 1.25) auto;
+                padding: 0 calc(var(--spacing-unit) * 1);
+            }
+
+            .section-card {
+                padding: calc(var(--spacing-unit) * 1.25);
+                margin-bottom: calc(var(--spacing-unit) * 1.25);
+            }
+
+            .section-card__header {
+                font-size: calc(var(--spacing-unit) * 1.25); /* ~20px */
+            }
+
+            .summary-grid {
+                gap: calc(var(--spacing-unit));
+            }
+
+            .summary-grid__item {
+                padding: calc(var(--spacing-unit) * 0.875) calc(var(--spacing-unit) * 1); /* ~14px 16px */
+                font-size: calc(var(--spacing-unit) * 0.9); /* ~14.4px */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <h1 class="navbar__title">Chi tiết người dùng</h1>
+        <a href="/admin/dashboard" class="navbar__button">
+            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+        </a>
+    </header>
+
+    <main class="container">
+
+        <section class="summary-grid">
+            <div class="summary-grid__item">
+                <i class="fas fa-users-cog"></i> Tài khoản phụ: <%= subUsers.length %>
+            </div>
+            <div class="summary-grid__item">
+                <i class="fas fa-child"></i> Trẻ quản lý: <%= children.length %>
+            </div>
+            <div class="summary-grid__item">
+                <i class="fas fa-bell"></i> Nhắc nhở: <%= reminders.length %>
+            </div>
+            <div class="summary-grid__item">
+                <i class="fas fa-newspaper"></i> Bài viết: <%= posts.length %>
+            </div>
+        </section>
+
+        <section class="section-card">
+            <h2 class="section-card__header">
+                <i class="fas fa-user-circle"></i> Thông tin cơ bản
+            </h2>
+            <ul>
+                <li class="list-item">
+                    <i class="fas fa-id-card list-item__icon"></i>
+                    <span class="list-item__text">
+                        <strong>Họ tên / Email:</strong> <%= user.fullname || user.email %>
+                    </span>
+                </li>
+                <li class="list-item">
+                    <i class="fas fa-at list-item__icon"></i>
+                    <span class="list-item__text">
+                        <strong>Email:</strong> <%= user.email %>
+                    </span>
+                </li>
+                <li class="list-item">
+                    <i class="fas fa-user-tag list-item__icon"></i>
+                    <span class="list-item__text">
+                        <strong>Vai trò:</strong> <%= user.role %>
+                    </span>
+                </li>
+                <li class="list-item">
+                    <i class="fas <%= user.isSuspended ? 'fa-ban status--suspended' : 'fa-check-circle status--active' %> list-item__icon"></i>
+                    <span class="list-item__text">
+                        <strong>Trạng thái:</strong> <%= user.isSuspended ? 'Bị đình chỉ' : 'Hoạt động' %>
+                    </span>
+                </li>
+            </ul>
+        </section>
+
+        <section class="section-card">
+            <h2 class="section-card__header">
+                <i class="fas fa-users"></i> Tài khoản phụ
+            </h2>
+            <% if (subUsers.length === 0) { %>
+                <p class="empty-message">Không có tài khoản phụ nào.</p>
+            <% } else { %>
+                <ul>
+                    <% subUsers.forEach(sub => { %>
+                        <li class="list-item">
+                            <i class="fas fa-user list-item__icon"></i>
+                            <span class="list-item__text">
+                                <%= sub.fullname || sub.email %> <small>- Vai trò: <%= sub.role %></small>
+                            </span>
+                        </li>
+                    <% }) %>
+                </ul>
+            <% } %>
+        </section>
+
+        <section class="section-card">
+            <h2 class="section-card__header">
+                <i class="fas fa-baby"></i> Trẻ đang quản lý
+            </h2>
+            <% if (children.length === 0) { %>
+                <p class="empty-message">Không có trẻ nào.</p>
+            <% } else { %>
+                <ul>
+                    <% children.forEach(child => { %>
+                        <li class="list-item">
+                            <i class="fas fa-child list-item__icon"></i>
+                            <span class="list-item__text">
+                                <strong><%= child.fullname %></strong> <small>- Ngày sinh: 
+                                <%= child.date_of_birth 
+                                    ? new Date(child.date_of_birth).toLocaleDateString('vi-VN') 
+                                    : 'Chưa rõ' %></small>
+                            </span>
+                        </li>
+                    <% }) %>
+                </ul>
+            <% } %>
+        </section>
+
+        <section class="section-card">
+            <h2 class="section-card__header">
+                <i class="fas fa-calendar-alt"></i> Nhắc nhở
+            </h2>
+            <% if (reminders.length === 0) { %>
+                <p class="empty-message">Không có nhắc nhở nào.</p>
+            <% } else { %>
+                <ul>
+                    <% reminders.forEach(r => { %>
+                        <li class="list-item">
+                            <i class="fas fa-clock list-item__icon"></i>
+                            <span class="list-item__text">
+                                <strong><%= r.title %></strong> <small>- 
+                                <%= r.reminder_date 
+                                    ? new Date(r.reminder_date).toLocaleString('vi-VN') 
+                                    : 'Chưa rõ thời gian' %></small>
+                            </span>
+                        </li>
+                    <% }) %>
+                </ul>
+            <% } %>
+        </section>
+
+        <section class="section-card">
+            <h2 class="section-card__header">
+                <i class="fas fa-clipboard-list"></i> Bài viết đã tạo
+            </h2>
+            <% if (posts.length === 0) { %>
+                <p class="empty-message">Không có bài viết nào.</p>
+            <% } else { %>
+                <ul>
+                    <% posts.forEach(p => { %>
+                        <li class="list-item">
+                            <i class="fas fa-file-alt list-item__icon"></i>
+                            <span class="list-item__text">
+                                <%= p.content?.substring(0, 100) || '(Không có nội dung)' %>... 
+                                <small>- Trạng thái: <%= p.status || 'Không xác định' %></small>
+                            </span>
+                        </li>
+                    <% }) %>
+                </ul>
+            <% } %>
+        </section>
+
+    </main>
+
+</body>
+</html>
