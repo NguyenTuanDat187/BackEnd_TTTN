@@ -11,7 +11,11 @@ const AdminLogSchema = new mongoose.Schema({
   },
   created_at: {
     type: Date,
-    default: Date.now
+    default: () => {
+      const vnTime = new Date();
+      vnTime.setHours(vnTime.getHours() + 7); // Cộng thêm 7 giờ để chuyển sang giờ VN
+      return vnTime;
+    }
   }
 }, { collection: 'admin_logs' });
 

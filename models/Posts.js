@@ -1,5 +1,5 @@
-// models/Posts.js
 const mongoose = require('mongoose');
+const moment = require('moment-timezone'); // thêm dòng này
 const Schema = mongoose.Schema;
 
 const PostSchema = new Schema({
@@ -26,15 +26,15 @@ const PostSchema = new Schema({
     }],
     visibility: {
         type: String,
-        enum: ['public', 'private', 'friends', 'community'], // Added 'community'
+        enum: ['public', 'private', 'friends', 'community'],
         default: 'public'
     },
     status: {
         type: String,
-        enum: ['pending', 'active', 'rejected'], // Defined possible statuses
-        default: 'active' // Default is 'active', but will be overridden by controller logic for 'community' posts
+        enum: ['pending', 'active', 'rejected'],
+        default: 'active'
     },
-    rejectionReason: { // New field to store rejection reason
+    rejectionReason: {
         type: String,
         default: null
     },
@@ -45,6 +45,10 @@ const PostSchema = new Schema({
     total_likes: {
         type: Number,
         default: 0
+    },
+    created_time_vn: { // thêm trường này
+        type: String,
+        default: () => moment().tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss')
     }
 }, {
     collection: 'posts',

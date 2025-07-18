@@ -61,9 +61,11 @@ exports.getAllUsers = async (req, res) => {
  * @route POST /api/users/register
  * @access Public
  */
+// File controller/route của bạn, ví dụ: userController.js hoặc authController.js
+
 exports.registerParent = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password } = req.body; // <--- Lấy mật khẩu plaintext từ request
 
         // Kiểm tra email đã tồn tại chưa
         const existingUser = await User.findOne({ email });
@@ -71,20 +73,29 @@ exports.registerParent = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Email đã tồn tại.' });
         }
 
-        // Mã hóa mật khẩu
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // ❌ XÓA DÒNG NÀY (hoặc comment nó lại):
+        // const hashedPassword = await bcrypt.hash(password, 10);
 
         // Tạo người dùng mới với role 'parent' và tự động xác minh
+        // --> TRUYỀN MẬT KHẨU PLAINTEXT TRỰC TIẾP VÀO ĐÂY <--
         const newUser = await User.create({
             email,
-            password: hashedPassword,
+            password: password, // <--- Cần thay thế hashedPassword bằng 'password' (plaintext)
             isVerified: true, // Tự động xác minh cho tài khoản parent
             role: 'parent'
         });
 
+        // (Phần tạo token và trả về response giữ nguyên nếu có)
+        // Nếu bạn có tạo token ở đây, hãy đảm bảo rằng newUser đã được lưu vào DB (và password đã được hash)
+        // trước khi bạn tạo token nếu token cần thông tin về user_id.
+        // Ví dụ:
+        // const token = generateToken({ userId: newUser._id, role: newUser.role });
+
+
         res.status(201).json({
             success: true,
             message: 'Đăng ký tài khoản chính thành công.',
+            // ... (các thông tin user trả về)
             user: {
                 _id: newUser._id,
                 email: newUser.email,
@@ -109,20 +120,31 @@ exports.loginParent = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        console.log(`[LOGIN_PARENT] 📥 Nhận yêu cầu đăng nhập cho email: ${email}`);
+        // CẢNH BÁO: CHỈ DÙNG ĐỂ GỠ LỖI CỤC BỘ. ĐỪNG BAO GIỜ DÙNG TRONG PRODUCTION!
+        console.log(`[DEBUG] Mật khẩu người dùng nhập (plaintext): ${password}`);
+
+
         // Kiểm tra đầy đủ thông tin
         if (!email || !password) {
+            console.log(`[LOGIN_PARENT] ❌ Lỗi 400: Thiếu email hoặc mật khẩu cho email: ${email || 'không xác định'}.`);
             return res.status(400).json({ success: false, message: 'Vui lòng nhập email và mật khẩu.' });
         }
 
         // Tìm người dùng với email và role 'parent'
         const user = await User.findOne({ email, role: 'parent' });
         if (!user) {
+            console.log(`[LOGIN_PARENT] ❌ Lỗi 400: Không tìm thấy tài khoản parent với email: ${email} hoặc sai mật khẩu.`);
             return res.status(400).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu.' });
         }
+        console.log(`[LOGIN_PARENT] ✅ Tìm thấy người dùng: ${user._id}, isSuspended: ${user.isSuspended} cho email: ${email}`);
+        // CẢNH BÁO: CHỈ DÙNG ĐỂ GỠ LỖI CỤC BỘ. ĐỪNG BAO GIỜ DÙNG TRONG PRODUCTION!
+        console.log(`[DEBUG] Mật khẩu đã hash trong DB: ${user.password}`);
+
 
         // --- BẮT ĐẦU THÊM KIỂM TRA isSuspended ---
         if (user.isSuspended) {
-            console.log(`❌ Đăng nhập tài khoản chính thất bại: Tài khoản '${email}' đã bị đình chỉ.`);
+            console.log(`[LOGIN_PARENT] ❌ Lỗi 403: Tài khoản '${email}' đã bị đình chỉ. ID người dùng: ${user._id}`);
             return res.status(403).json({ success: false, message: 'Tài khoản của bạn đã bị đình chỉ. Vui lòng liên hệ quản trị viên.' });
         }
         // --- KẾT THÚC THÊM KIỂM TRA isSuspended ---
@@ -131,11 +153,16 @@ exports.loginParent = async (req, res) => {
         // So sánh mật khẩu
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
+            console.log(`[LOGIN_PARENT] ❌ Lỗi 400: Mật khẩu không khớp cho email: ${email}.`);
             return res.status(400).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu.' });
         }
+        console.log(`[LOGIN_PARENT] ✅ Mật khẩu khớp cho email: ${email}.`);
+
 
         // Tạo JWT token
         const token = generateToken({ userId: user._id, role: user.role });
+        console.log(`[LOGIN_PARENT] ✅ Đã tạo JWT token cho người dùng: ${user._id}.`);
+
 
         // Bạn có thể cân nhắc lưu token vào cookie nếu muốn quản lý phiên từ server-side
         // res.cookie('token', token, {
@@ -158,12 +185,13 @@ exports.loginParent = async (req, res) => {
                 image: user.image
             }
         });
+        console.log(`[LOGIN_PARENT] ✨ Đăng nhập thành công cho email: ${email}.`);
+
     } catch (err) {
-        console.error('Lỗi đăng nhập tài khoản chính:', err);
+        console.error(`[LOGIN_PARENT] ❌ Lỗi Server 500 khi đăng nhập tài khoản chính cho email: ${req.body.email || 'không xác định'}. Chi tiết lỗi:`, err);
         res.status(500).json({ success: false, message: 'Lỗi server khi đăng nhập tài khoản chính.' });
     }
 };
-
 
 // --- Quản lý thông tin tài khoản (Parent hoặc Subuser) --- //
 

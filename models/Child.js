@@ -21,12 +21,23 @@ const ChildSchema = new mongoose.Schema({
     required: true
   },
   avatar_url: {
-    type: String // Đường dẫn ảnh đại diện nếu có
-  },
-  created_at: {
-    type: Date,
-    default: Date.now
+    type: String
   }
-}, { collection: 'children' });
+}, {
+  collection: 'children',
+  timestamps: false
+});
+
+// Middleware gán created_at theo giờ Việt Nam
+ChildSchema.pre('save', function (next) {
+  if (!this.created_at) {
+    this.created_at = new Date(Date.now() + 7 * 60 * 60 * 1000);
+  }
+  next();
+});
+
+ChildSchema.add({
+  created_at: Date
+});
 
 module.exports = mongoose.model('Child', ChildSchema);
